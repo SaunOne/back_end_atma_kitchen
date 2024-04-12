@@ -9,12 +9,14 @@ use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
-    public function fetchAll(){
+    public function showAll(){
 
         $user = User::all();
 
         return response()->json($user);
     }
+
+  
 
 
     public function findByIdUser(){

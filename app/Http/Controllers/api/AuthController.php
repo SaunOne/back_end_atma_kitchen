@@ -113,4 +113,12 @@ class AuthController extends Controller
         ]);
     }
 
+    public function changePassword(Request $requers,$email){
+        $user = User::findByEmail($email);
+
+        
+    }
+
+    
+
 }
