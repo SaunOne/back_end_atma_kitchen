@@ -3,20 +3,39 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Passport\HasApiTokens;
+use Laravel\Fortify\TwoFactorAuthenticatable;
+use Laravel\Jetstream\HasProfilePhoto;
+use Laravel\Sanctum\HasApiTokens;
+use App\Notifications\ResetPasswordNotification;
+
+
+
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
     use HasApiTokens;
+    use HasFactory;
+    use HasProfilePhoto;
+    use Notifiable;
+    use TwoFactorAuthenticatable;
+    use CanResetPassword;
     /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
      */
+    public function sendPasswordResetNotification($token): void
+    {
+        $url = 'http://127.0.0.1:8000/reset-password/' . $token;
+
+        $this->notify(new ResetPasswordNotification($url));
+    }
+
     protected $table = 'users';
     protected $primaryKey = 'id_user';
     public $timestamps = false;
@@ -34,7 +53,6 @@ class User extends Authenticatable
         'active',
         'verify_key'
     ];
-
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -43,6 +61,17 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'two_factor_recovery_codes',
+        'two_factor_secret',
+    ];
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array<int, string>
+     */
+    protected $appends = [
+        'profile_photo_url',
     ];
 
     /**
