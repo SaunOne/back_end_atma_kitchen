@@ -13,13 +13,18 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Support\Facades\Password;
+
+
 
 class AuthController extends Controller
-{   
-    
-    public function register(Request $request){
+{
+
+    public function register(Request $request)
+    {
         $data = $request->all();
-        
+
         $data['id_role'] = 4;
 
         $validate = Validator::make($data, [
@@ -33,9 +38,9 @@ class AuthController extends Controller
             'tanggal_lahir' => 'required',
         ]);
 
-        if($validate->fails()){
+        if ($validate->fails()) {
             return response(
-                ["Message" => $validate->errors()->first(),400]
+                ["Message" => $validate->errors()->first(), 400]
             );
         }
 
@@ -51,7 +56,7 @@ class AuthController extends Controller
             'website' => 'Atma Kitchen',
             'datetime' => now(),
             'url' => request()->getHttpHost()  . '/api/verify/' . $str,
-        ];  
+        ];
 
         Mail::to($request->email)->send(new VerificationAccount($details));
 
@@ -61,7 +66,6 @@ class AuthController extends Controller
             'random' => $data['verify_key'],
             'url' => request()->getHttpHost() . '/api/verify/' . $str,
         ], 200);
-        
     }
 
     public function verify($verify_key)
@@ -88,7 +92,8 @@ class AuthController extends Controller
         }
     }
 
-    public function login(Request $request){
+    public function login(Request $request)
+    {
         $loginData = $request->all();
 
         $validate = Validator::make($loginData, [
@@ -113,12 +118,54 @@ class AuthController extends Controller
         ]);
     }
 
-    public function changePassword(Request $requers,$email){
-        $user = User::findByEmail($email);
 
-        
+    public function forgotPassword(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+
+        $status = Password::sendResetLink(
+            $request->only('email')
+        );
+
+        return $status === Password::RESET_LINK_SENT
+            ? back()->with(['status' => __($status)])
+            : back()->withErrors(['email' => __($status)]);
     }
 
-    
+    public function resetPassword(Request $request)
+    {
 
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|min:8|confirmed',
+        ]);
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+
+            function (User $user, string $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password)
+                ])->setRememberToken(Str::random(60));
+
+                $user->save();
+
+                event(new PasswordReset($user));
+            }
+        );
+
+        return $status === Password::PASSWORD_RESET
+            ? redirect()->route('login')->with('status', __($status))
+            : back()->withErrors(['email' => [__($status)]]);
+    }
+
+    public function updatePassword($newPassword, $id){
+        
+        $user = User::find($id);
+
+        $user->password = Hash::make($newPassword);
+        $user->save();
+
+    }
 }
