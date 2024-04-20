@@ -6,8 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use illuminate\Support\Facades\Auth;
-
-class Customer
+class Owner
 {
     /**
      * Handle an incoming request.
@@ -16,9 +15,9 @@ class Customer
      */
     public function handle(Request $request, Closure $next): Response
     {   
-        if(Auth::user()->id_user > 4){
+        if(Auth::user()->id_user > 1){
             return response([
-                "message" => "User is not Customer",
+                "message" => "User is not Owner",
             ]);
         }
         return $next($request);

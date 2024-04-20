@@ -2,14 +2,9 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Models\User;
-use Illuminate\Auth\Events\PasswordReset;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Str;
-use PHPUnit\Framework\Attributes\Group;
+use App\Http\Middleware; 
 
-
+//umum
 
 Route::post('/register',[App\Http\Controllers\Api\AuthController::class,'register'] );
 Route::get('/verify/{verify_key}',[App\Http\Controllers\Api\AuthController::class,'verify'] );
@@ -23,10 +18,33 @@ Route::post('/reset-password',[App\Http\Controllers\Api\AuthController::class,'r
 Route::get('/test',[App\Http\Controllers\Api\UserController::class,'test']);
 
 
-       
 
-Route::middleware('auth:api')->group(function(){
+Route::middleware(['auth:api','owner'])->group(function(){
     
+
+});
+
+Route::middleware(['auth:api','MO'])->group(function(){
+
+    Route::get('/',[App\Http\Controllers\Api\UserController::class,'fetchAll'] );
+     //Absensi
+    Route::get('/absensi',[App\Http\Controllers\Api\AbsensiController::class,'showAll']);
+     //Pegawai
+    Route::put('/absensi/${id}',[App\Http\Controllers\Api\AbsensiController::class,'updatePassword']);
+
+     //kelola data karyawan
+     Route::get('/karyawan',[App\Http\Controllers\api\PegawaiController::class,'showAll']);
+     Route::get('/karyawan/{id}',[App\Http\Controllers\api\PegawaiController::class,'showById']); 
+     Route::post('/karyawan',[App\Http\Controllers\api\PegawaiController::class,'store']);
+     Route::put('/karyawan/{id}',[App\Http\Controllers\api\PegawaiController::class,'update']);
+     Route::delete('/karyawan/{id}',[App\Http\Controllers\api\PegawaiController::class,'destroy']);
+ 
+     //mengubah data gaji dan bonus
+     Route::put('/karyawan/update_gaji_bonus/{id}',[App\Http\Controllers\api\PegawaiController::class,'updateGajiBonus']);
+});
+
+Route::middleware(['auth:api','admin'])->group(function(){
+ 
      //Produk
      Route::get('/produk',[App\Http\Controllers\api\ProdukController::class,'showAll']);
      Route::get('/produk/search/{id}',[App\Http\Controllers\api\ProdukController::class,'showById']);
@@ -58,16 +76,6 @@ Route::middleware('auth:api')->group(function(){
      Route::put('/hampers/{id}',[App\Http\Controllers\api\HampersController::class,'update']);
      Route::delete('/hampers/{id}',[App\Http\Controllers\api\HampersController::class,'destroy']);
  
-     //kelola data karyawan
-     Route::get('/karyawan',[App\Http\Controllers\api\PegawaiController::class,'showAll']);
-     Route::get('/karyawan/{id}',[App\Http\Controllers\api\PegawaiController::class,'showById']); 
-     Route::post('/karyawan',[App\Http\Controllers\api\PegawaiController::class,'store']);
-     Route::put('/karyawan/{id}',[App\Http\Controllers\api\PegawaiController::class,'update']);
-     Route::delete('/karyawan/{id}',[App\Http\Controllers\api\PegawaiController::class,'destroy']);
- 
-     //mengubah data gaji dan bonus
-     Route::put('/karyawan/update_gaji_bonus/{id}',[App\Http\Controllers\api\PegawaiController::class,'updateGajiBonus']);
- 
      //penitip
      Route::get('/penitip',[App\Http\Controllers\api\PegawaiController::class,'showAll']);
      Route::get('/penitip/{id}',[App\Http\Controllers\api\PegawaiController::class,'showById']); 
@@ -76,17 +84,15 @@ Route::middleware('auth:api')->group(function(){
      Route::delete('/penitip/{id}',[App\Http\Controllers\api\PegawaiController::class,'destroy']);
  
      //Produk Utama
-     Route::post('/produk_utama',[App\Http\Controllers\api\ProdukUtamaController::class,'store']);
-
-     Route::get('/',[App\Http\Controllers\Api\UserController::class,'fetchAll'] );
-     //Absensi
-     Route::get('/absensi',[App\Http\Controllers\Api\AbsensiController::class,'showAll']);
-     //Pegawai
-     Route::put('/absensi/${id}',[App\Http\Controllers\Api\AbsensiController::class,'updatePassword']);
      
+    
 
-    });
-   
+});
+
+Route::middleware(['auth:api','karyawan'])->group(function(){
+
+
+});
 
 
 
