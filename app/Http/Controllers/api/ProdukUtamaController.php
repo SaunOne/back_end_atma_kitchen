@@ -35,14 +35,15 @@ class ProdukUtamaController extends Controller
 
     public function store(Request $request)
     {
+      
         $data = $request->all();
 
         $validate = Validator::make($data, [
             'id_packaging' => 'required',
-            'katagori_produk' => 'required',
+            'kategori_produk' => 'required',
             'limit_harian' => 'required'
         ]);
-
+   
         if ($validate->fails()) {
             return response(['message' => $validate->errors()->first()], 400);
         }

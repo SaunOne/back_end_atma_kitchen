@@ -11,7 +11,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Auth;
-use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Facades\Password;
@@ -107,14 +106,16 @@ class AuthController extends Controller
         if (!Auth::attempt($loginData)) {
             return response(['message' => 'Invalid email & password match'], 401);
         }
+        /** @var \App\Models\User $user  **/
         $user = Auth::user();
-        $token = $user->createToken('Authentication Token')->accessToken;
+        $result = $user->createToken('Authentication Token')->accessToken;
+
 
         return response([
             'message' => 'Authenticated',
             'data' => $user,
             'token_type' => 'Bearer',
-            'access_token' => $token
+            'access_token' => $result
         ]);
     }
 
@@ -160,12 +161,20 @@ class AuthController extends Controller
             : back()->withErrors(['email' => [__($status)]]);
     }
 
-    public function updatePassword($newPassword, $id){
-        
+    public function updatePassword($newPassword, $id)
+    {
         $user = User::find($id);
-
+        if($user['id_role'] === 4){
+            return response([
+                "message" => "Customer can't update password with this mthode"
+            ]);
+        }
+        
         $user->password = Hash::make($newPassword);
         $user->save();
 
+        return response([
+            "message" => "Update Password Successfully"
+        ]);
     }
 }
