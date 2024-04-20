@@ -14,9 +14,13 @@ class Admin
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
-    {
-        if(Auth::user()->id_user != 3){
-            return redirect('welcome');
+    {   
+        $user = Auth::user();
+        if($user->id_role > 3){ 
+            return response([
+                "message" => "User is not Admin",
+                "user" => $user,
+            ]);
         }
         return $next($request);
     }
