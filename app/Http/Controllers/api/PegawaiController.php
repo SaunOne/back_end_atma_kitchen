@@ -40,7 +40,8 @@ class PegawaiController extends Controller
         $validate = Validator::make($data, [
             'gaji' => 'required',
             'bonus_gaji' => 'required',
-            'jabatan' => 'required'
+            'jabatan' => 'required',
+            'id_user' => 'required',
         ]);
 
         if ($validate->fails()) {
@@ -65,15 +66,29 @@ class PegawaiController extends Controller
 
         $data = $request->all();
 
+        $pegawai->update($data);
+
+        return response([
+            'message' => 'Pegawai updated successfully',
+            'data' => $pegawai
+        ], 200);
+    }
+
+    public function updateGajiBonus(Request $request,$id){
+        $pegawai = Pegawai::find($id);
+
+        if (!$pegawai) {
+            return response(['message' => 'Pegawai not found'], 404);
+        }
+
+        $data = $request->all();
+
         $validate = Validator::make($data, [
             'gaji' => 'required',
             'bonus_gaji' => 'required',
-            'jabatan' => 'required'
         ]);
 
-        if ($validate->fails()) {
-            return response(['message' => $validate->errors()->first()], 400);
-        }
+        $data = $request->all();
 
         $pegawai->update($data);
 
@@ -81,6 +96,7 @@ class PegawaiController extends Controller
             'message' => 'Pegawai updated successfully',
             'data' => $pegawai
         ], 200);
+        
     }
 
     public function destroy($id)
@@ -95,4 +111,6 @@ class PegawaiController extends Controller
 
         return response(['message' => 'Pegawai deleted successfully'], 200);
     }
+
+
 }

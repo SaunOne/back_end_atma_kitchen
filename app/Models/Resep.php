@@ -10,8 +10,11 @@ class Resep extends Model
     use HasFactory;
 
     protected $table = 'resep';
+
+
     public $timestamps = false;
 
+    protected $primaryKey = 'id_resep';
     protected $fillable = [
         'id_produk',
         'id_bahan',

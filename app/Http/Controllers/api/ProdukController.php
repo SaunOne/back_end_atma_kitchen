@@ -3,15 +3,26 @@
 namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
+use App\Models\DetailHampers;
 use App\Models\Produk;
+use App\Models\ReadyStok;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\api\ProdukTitipanController;
+use App\Http\Controllers\api\ProdukUtamaController;
+use App\Http\Controllers\api\HampersController;
+use App\Http\Controllers\api\ReadyStokController;
+use App\Http\Controllers\api\DetailHampersController;
+use App\Models\Hampers;
+use PhpParser\Node\Expr\CallLike;
 
 class ProdukController extends Controller
 {
     public function showAll()
     {
+
+
         $produks = Produk::all();
 
         return response([
@@ -23,7 +34,7 @@ class ProdukController extends Controller
     public function showById($id)
     {
 
-        $produk = Produk::find($id);
+        $produk = Produk::where($id);
 
         if (!$produk) {
             return response(['message' => 'Produk not found'], 404);
@@ -37,46 +48,119 @@ class ProdukController extends Controller
 
     public function searchProduk($search)
     {
-        $result = DB::table('your_table')
-            ->select('*')
-            ->whereRaw("MATCH(column1, column2, column3) AGAINST(? IN BOOLEAN MODE)", ["your_search_query"])
-            ->get();
+        
+        $result = Produk::where('nama_produk', 'like' , '%' . $search . '%')
+        ->orWhere('nama_produk', 'like' , '%' . $search . '%')
+        ->orWhere('jenis_produk','like', '%' . $search . '%')
+        ->orWhere('harga','like', '%' . $search . '%')
+        ->orWhere('deskripsi','like', '%' . $search . '%')
+        ->get();
 
-        if($result === null){
+        if ($result === []) {
             return response([
                 "message" => "Produk not found",
+                "result" => $search,
             ]);
         }
 
         return response([
             "message" => "Show Produk Successfully",
-            "data" => $result 
+            "data" => $result
         ]);
     }
+
+
 
     public function store(Request $request)
     {
         $data = $request->all();
 
+        if (!isset($data['id_produk'])) {
+            if ($data['jenis_produk'] == 'produk utama') {
+                $validate = Validator::make($data, [
+                    'id_packaging' => 'required',
+                    'katagorie_produk' => 'required',
+                ]);
+                if ($validate->fails()) {
+                    return response(['message' => $validate->errors()->first()], 400);
+                }
+            } else if($data['jenis_produk'] == 'produk titipan'){
+                $validate = Validator::make($data, [
+                    'id_penitip' => 'required',
+                    'jumlah_produk_dititip' => 'required',
+                ]);
+                if ($validate->fails()) {
+                    return response(['message' => $validate->errors()->first()], 400);
+                }
+            } else if($data['jenis_produk'] == 'hampers'){
+                $validate = Validator::make($data, [
+                    'id_packaging' => 'required',
+                    'limit_harian' => 'required',
+                    'detail_hampers' => 'required'
+                ]);
+                if ($validate->fails()) {
+                    return response(['message' => $validate->errors()->first()], 400);
+                }
+            }
+        }
         $validate = Validator::make($data, [
-            'id_stok_produk' => 'required',
             'nama_produk' => 'required',
             'harga' => 'required',
             'quantity' => 'required',
             'deskripsi' => 'required',
-            'jenis_produk' => 'required'
+            'jenis_produk' => 'required',
         ]);
 
         if ($validate->fails()) {
             return response(['message' => $validate->errors()->first()], 400);
         }
 
-        $produk = Produk::create($data);
+        if ($data['jenis_produk'] === 'produk titipan' && isset($data['id_produk'])) {
+            $data['id_ready_stok'] = Produk::where('id_produk', $data['id_produk'])->value('id_ready_stok');
+            $data['jumlah_stok'] = $data['jumlah_produk_dititip'];
+        }
 
-        return response([
-            'message' => 'Produk created successfully',
-            'data' => $produk
-        ], 200);
+        $readyStok = ReadyStok::updateOrCreate(
+            ['id_ready_stok' => $data['id_ready_stok'] ?? null],
+            ['jumlah_stok' => DB::raw('jumlah_stok + ' . ($data['jumlah_stok'] ?? 0))]
+        );
+
+        if (!isset($data['id_ready_stok'])) {
+            $readyStok['satuan'] = $data['satuan'];
+            $readyStok['jumlah_stok'] = $data['jumlah_stok'];
+            $readyStok->save();
+            $data['id_ready_stok'] = $readyStok['id_ready_stok'];
+        }
+
+        $produk = Produk::updateOrCreate(
+            ['id_produk' => $data['id_produk'] ?? null],
+            $data
+        );
+
+        $data['id_produk'] = $produk['id_produk'];
+
+        switch ($data['jenis_produk']) {
+            case 'produk utama':
+                app(ProdukUtamaController::class)->store(new Request($data));
+                break;
+            case 'hampers':
+                $data['DetailHampers']['id_hampers'] = $produk['id_produk'];
+                app(HampersController::class)->store(new Request($data));
+                $this->handleDetailHampers($data);
+                break;
+            case 'produk titipan':
+                app(ProdukTitipanController::class)->store(new Request($data));
+                break;
+        }
+
+        return response(['message' => 'Produk created successfully'], 200);
+    }
+
+    protected function handleDetailHampers($data)
+    {
+        foreach ($data['detail_hampers'] as $dH) {
+            app(DetailHampersController::class)->store(new Request(array_merge($dH, ["id_hampers" => $data["id_produk"]])));
+        }
     }
 
     public function update(Request $request, $id)
@@ -90,7 +174,6 @@ class ProdukController extends Controller
         $data = $request->all();
 
         $validate = Validator::make($data, [
-            'id_stok_produk' => 'required',
             'nama_produk' => 'required',
             'harga' => 'required',
             'quantity' => 'required',

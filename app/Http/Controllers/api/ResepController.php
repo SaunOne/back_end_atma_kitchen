@@ -32,13 +32,29 @@ class ResepController extends Controller
             'data' => $resep
         ], 200);
     }
+    
+    public function showByIdProduk($id)
+    {
+        $resep = Resep::where('id_produk',$id)->get();
+
+        if (!$resep) {
+            return response(['message' => 'Resep not found'], 404);
+        }
+
+        return response([
+            'message' => 'Show Resep Successfully',
+            'data' => $resep
+        ], 200);
+    }
 
     public function store(Request $request)
     {
         $data = $request->all();
 
         $validate = Validator::make($data, [
-            // add validation rules for your fields
+            'id_produk' => 'required',
+            'id_bahan' => 'required',
+            'jumlah_bahan' => 'required',
         ]);
 
         if ($validate->fails()) {
@@ -53,7 +69,30 @@ class ResepController extends Controller
         ], 200);
     }
 
-    public function update(Request $request, $id)
+    public function storeAll(Request $request)
+    {
+        $data = $request->all();
+
+        $validate = Validator::make($data, [
+            'reseps' => 'required',
+        ]);
+
+        if ($validate->fails()) {
+            return response(['message' => $validate->errors()->first()], 400);
+        }
+
+        
+        foreach($data['reseps'] as $r){
+           Resep::create($r);
+        }
+
+        return response([
+            'message' => 'Resep created successfully',
+            'data' => $data
+        ], 200);
+    }
+
+    public function destroy($id)
     {
         $resep = Resep::find($id);
 
@@ -61,25 +100,12 @@ class ResepController extends Controller
             return response(['message' => 'Resep not found'], 404);
         }
 
-        $data = $request->all();
+        $resep->delete();
 
-        $validate = Validator::make($data, [
-            // add validation rules for your fields
-        ]);
-
-        if ($validate->fails()) {
-            return response(['message' => $validate->errors()->first()], 400);
-        }
-
-        $resep->update($data);
-
-        return response([
-            'message' => 'Resep updated successfully',
-            'data' => $resep
-        ], 200);
+        return response(['message' => 'Resep deleted successfully'], 200);
     }
 
-    public function destroy($id)
+    public function destroyByIdProduk($id)
     {
         $resep = Resep::find($id);
 
