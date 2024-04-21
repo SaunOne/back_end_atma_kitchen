@@ -26,7 +26,7 @@ class UserController extends Controller
 
     public function test(){
         $user = DB::table('password_reset_tokens')->select('token')->where('email','tinartinar720@gmail.com')->value('column');
-
+        
         return response([
             $user
         ]);

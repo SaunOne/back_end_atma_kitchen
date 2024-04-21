@@ -91,6 +91,10 @@ class AuthController extends Controller
         }
     }
 
+    public function cekVerify(){
+
+    }
+
     public function login(Request $request)
     {
         $loginData = $request->all();
@@ -175,6 +179,18 @@ class AuthController extends Controller
 
         return response([
             "message" => "Update Password Successfully"
+        ]);
+    }
+
+    public function cekActive($id){
+        return response([
+            "hai"
+        ]);
+        $user = User::find($id);
+        
+        return response([
+            "message" => "Cek Active Successfully",
+            "Status" => $user['active']
         ]);
     }
 }

@@ -93,4 +93,5 @@ class AbsensiController extends Controller
 
         return response(['message' => 'Absensi deleted successfully'], 200);
     }
+
 }
