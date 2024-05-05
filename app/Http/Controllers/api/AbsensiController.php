@@ -11,13 +11,16 @@ class AbsensiController extends Controller
 {
     public function showAll()
     {
-        $absensi = Absensi::all();
+        $absensi = Absensi::select('absensi.*', 'pegawai.*')
+        ->join('pegawai', 'absensi.id_user', '=', 'pegawai.id_user')
+        ->get();
+
 
         return response([
             'message' => 'All Absensi Retrieved',
             'data' => $absensi
         ], 200);
-    } 
+    }
 
     public function showById($id)
     {
@@ -65,7 +68,6 @@ class AbsensiController extends Controller
         $data = $request->all();
 
         $validate = Validator::make($data, [
-            'id_user' => 'required',
             'tanggal' => 'required',
         ]);
 
@@ -93,5 +95,4 @@ class AbsensiController extends Controller
 
         return response(['message' => 'Absensi deleted successfully'], 200);
     }
-
 }

@@ -26,6 +26,7 @@ class Transaksi extends Model
         'jenis_pengiriman',
         'biaya_pengiriman',
         'bukti_pembayaran',
+        'point_diperoleh,'
     ];
 
     public function user()

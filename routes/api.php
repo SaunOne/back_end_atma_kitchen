@@ -9,19 +9,20 @@ use App\Http\Middleware;
 Route::post('/register',[App\Http\Controllers\Api\AuthController::class,'register'] );
 Route::get('/verify/{verify_key}',[App\Http\Controllers\Api\AuthController::class,'verify'] );
 Route::post('/login',[App\Http\Controllers\Api\AuthController::class,'login']);
-Route::post('/cek-active',[App\Http\Controllers\Api\AuthController::class,'cekActive']);
+Route::get('/cek-active/{id}',[App\Http\Controllers\Api\AuthController::class,'cekActive']);
 
 //forget password
 Route::post('/forgot-password',[App\Http\Controllers\Api\AuthController::class,'forgotPassword'])->middleware('guest')->name('password.email');
 Route::post('/reset-password',[App\Http\Controllers\Api\AuthController::class,'resetPassword'] )->middleware('guest')->name('password.update');
 
-
-
+Route::get('/absensi',[App\Http\Controllers\Api\AbsensiController::class,'showAll']);
+Route::post('/absensi',[App\Http\Controllers\Api\AbsensiController::class,'store']);
+Route::put('/absensi/{id}',[App\Http\Controllers\Api\AbsensiController::class,'update']);
+Route::delete('/absensi/{id}',[App\Http\Controllers\Api\AbsensiController::class,'destroy']);
 
 //test
+
 Route::get('/test',[App\Http\Controllers\Api\UserController::class,'test']);
-
-
 
 Route::middleware(['auth:api','owner'])->group(function(){
     
@@ -31,10 +32,10 @@ Route::middleware(['auth:api','owner'])->group(function(){
 Route::middleware(['auth:api','MO'])->group(function(){
 
     Route::get('/',[App\Http\Controllers\Api\UserController::class,'fetchAll'] );
-     //Absensi
-    Route::get('/absensi',[App\Http\Controllers\Api\AbsensiController::class,'showAll']);
-     //Pegawai
-    Route::put('/absensi/${id}',[App\Http\Controllers\Api\AbsensiController::class,'updatePassword']);
+     // Absensi
+//     Route::get('/absensi',[App\Http\Controllers\Api\AbsensiController::class,'showAll']);
+     // Pegawai
+//     Route::put('/absensi/${id}',[App\Http\Controllers\Api\AbsensiController::class,'updatePassword']);
 
      //kelola data karyawan
      Route::get('/karyawan',[App\Http\Controllers\api\PegawaiController::class,'showAll']);
