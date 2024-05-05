@@ -132,19 +132,38 @@ class AuthController extends Controller
             $request->only('email')
         );
 
-        return $status === Password::RESET_LINK_SENT
-            ? back()->with(['status' => __($status)])
-            : back()->withErrors(['email' => __($status)]);
+        if($status === Password::RESET_LINK_SENT){
+            return response([
+                "message" => "Email Link successfully sent",
+                "status" => 200,
+                "data" => $request,
+            ]);
+        } else {
+            return response([
+                "message" => "Email Link Failed to send",
+                "status" => 400,
+                "data" => $request,
+            ]);
+        }
+
+        // return $status === Password::RESET_LINK_SENT
+        //     ? back()->with(['status' => __($status)])
+        //     : back()->withErrors(['email' => __($status)]);
     }
 
     public function resetPassword(Request $request)
     {
+        $data = $request->all();
 
-        $request->validate([
+        $validate = Validator::make($data,[
             'token' => 'required',
             'email' => 'required|email',
             'password' => 'required|min:8|confirmed',
         ]);
+
+        if ($validate->fails()) {
+            return response(['message' => $validate->errors()->first()], 400);
+        }
 
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
@@ -160,9 +179,22 @@ class AuthController extends Controller
             }
         );
 
-        return $status === Password::PASSWORD_RESET
-            ? redirect()->route('login')->with('status', __($status))
-            : back()->withErrors(['email' => [__($status)]]);
+        if($status == Password::RESET_LINK_SENT){
+            return response([
+                "message" => "Reset Password Successful",
+                "status" => $status,
+                "data" => $request
+            ]);
+        } else {
+            return response([
+                "message" => "Reset Password Failed",
+                "status" => $status,
+            ]);
+        }
+
+        // return $status === Password::PASSWORD_RESET
+        //     ? redirect()->route('login')->with('status', __($status))
+        //     : back()->withErrors(['email' => [__($status)]]);
     }
 
     public function updatePassword($newPassword, $id)
@@ -170,7 +202,8 @@ class AuthController extends Controller
         $user = User::find($id);
         if($user['id_role'] === 4){
             return response([
-                "message" => "Customer can't update password with this mthode"
+                "message" => "Customer can't update password with this mthode",
+                "status" => 405
             ]);
         }
         
@@ -178,16 +211,14 @@ class AuthController extends Controller
         $user->save();
 
         return response([
-            "message" => "Update Password Successfully"
+            "message" => "Update Password Successfully",
+            "status" => 202
         ]);
     }
 
     public function cekActive($id){
-        return response([
-            "hai"
-        ]);
+
         $user = User::find($id);
-        
         return response([
             "message" => "Cek Active Successfully",
             "Status" => $user['active']
