@@ -24,7 +24,7 @@ Route::get('/test', [App\Http\Controllers\Api\UserController::class, 'test']);
 Route::middleware(['auth:api', 'owner'])->group(function () {
 });
 
-Route::middleware(['auth:api', 'MO'])->group(function () {
+Route::middleware(['auth:api'])->group(function () {
 
      Route::get('/', [App\Http\Controllers\Api\UserController::class, 'fetchAll']);
      Route::get('/absensi', [App\Http\Controllers\Api\AbsensiController::class, 'showAll']);
@@ -41,6 +41,21 @@ Route::middleware(['auth:api', 'MO'])->group(function () {
 
      //mengubah data gaji dan bonus
      Route::put('/karyawan/update_gaji_bonus/{id}', [App\Http\Controllers\api\PegawaiController::class, 'updateGajiBonus']);
+
+     //pembelian bahan
+     Route::get('/pembelian-bahan', [App\Http\Controllers\api\PembelianBahanController::class, 'showAll']);
+     Route::get('/pembelian-bahan/{id}', [App\Http\Controllers\api\PembelianBahanController::class, 'showById']);
+     Route::post('/pembelian-bahan', [App\Http\Controllers\api\PembelianBahanController::class, 'store']);
+     Route::put('/pembelian-bahan/{id}', [App\Http\Controllers\api\PembelianBahanController::class, 'update']);
+     Route::delete('/pembelian-bahan/{id}', [App\Http\Controllers\api\PembelianBahanController::class, 'destroy']);
+
+     //pengeluaran lain lain
+     Route::get('/pengeluaran-lain-lain', [App\Http\Controllers\api\PengeluaranLainLainController::class, 'showAll']);
+     Route::get('/pengeluaran-lain-lain/{id}', [App\Http\Controllers\api\PengeluaranLainLainController::class, 'showById']);
+     Route::post('/pengeluaran-lain-lain', [App\Http\Controllers\api\PengeluaranLainLainController::class, 'store']);
+     Route::put('/pengeluaran-lain-lain/{id}', [App\Http\Controllers\api\PengeluaranLainLainController::class, 'update']);
+     Route::delete('/pengeluaran-lain-lain/{id}', [App\Http\Controllers\api\PengeluaranLainLainController::class, 'destroy']);
+
 });
 
 Route::middleware(['auth:api', 'admin'])->group(function () {
@@ -77,13 +92,16 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
      Route::delete('/hampers/{id}', [App\Http\Controllers\api\HampersController::class, 'destroy']);
 
      //penitip
-     Route::get('/admin/penitip', [App\Http\Controllers\api\PenitipController::class, 'showAll']);
+     Route::get('/penitip', [App\Http\Controllers\api\PenitipController::class, 'showAll']);
      Route::get('/penitip/{id}', [App\Http\Controllers\api\PenitipController::class, 'showById']);
      Route::post('/penitip', [App\Http\Controllers\api\PenitipController::class, 'store']);
      Route::put('/penitip/{id}', [App\Http\Controllers\api\PenitipController::class, 'update']);
      Route::delete('/penitip/{id}', [App\Http\Controllers\api\PenitipController::class, 'destroy']);
 
      //Produk Utama
+
+
+     
      
 
 
