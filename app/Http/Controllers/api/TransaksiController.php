@@ -3,19 +3,44 @@
 namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
+use App\Models\DetailTransaksi;
+use App\Models\Produk;
 use App\Models\Transaksi;
+use App\Models\Alamat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class TransaksiController extends Controller
 {
     public function showAll()
     {
-        $transaksis = Transaksi::all();
+        $transaksis = Transaksi::select();
 
         return response([
             'message' => 'All Transaksis Retrieved',
             'data' => $transaksis
+        ], 200);
+    }
+
+    public function showByUser()
+    {
+        $id_user =  Auth::user()->id_user;
+        $transaksis = Transaksi::where('id_user', $id_user)->get();
+
+        foreach ($transaksis as $transaksi) {
+            $detail_transaksis = DetailTransaksi::where('id_transaksi', $transaksi->id_transaksi)->get();
+            $transaksi->detail_transaksi = $detail_transaksis;
+            $transaksi->alamat = Alamat::where('id_alamat',$transaksi->id_alamat)->first();
+            foreach ($detail_transaksis as $detail_transaksi){
+                $products = Produk::where('id_produk',$detail_transaksi->id_produk)->first();
+                $detail_transaksi->produk = $products;
+            }
+        }
+
+        return response([
+            'message' => 'All Transaksis Retrieved',
+            'data' => $transaksis,
         ], 200);
     }
 

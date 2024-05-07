@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'MO' => App\Http\Middleware\ManagerOprasional::class,
             'admin' => App\Http\Middleware\Admin::class,
             'karyawan'=>App\Http\Middleware\Karyawan::class,
+            'customer'=>App\Http\Middleware\Customer::class,
         ]);
 
     })

@@ -15,7 +15,7 @@ class Owner
      */
     public function handle(Request $request, Closure $next): Response
     {   
-        if(Auth::user()->id_user > 1){
+        if(Auth::user()->id_role > 1){
             return response([
                 "message" => "User is not Owner",
             ]);

@@ -15,7 +15,7 @@ class Karyawan
      */
     public function handle(Request $request, Closure $next): Response
     {   
-        if(Auth::user()->id_user !== 5){
+        if(Auth::user()->id_role !== 5){
             return response([
                 "message" => "User is not Karyawan",
             ]);

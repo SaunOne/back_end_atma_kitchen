@@ -15,7 +15,7 @@ class ManagerOprasional
      */
     public function handle(Request $request, Closure $next): Response
     {   
-        if(Auth::user()->id_user > 2){
+        if(Auth::user()->id_role > 2){
             return response([
                 "message" => "User is not Manager Oprasional",
             ]);

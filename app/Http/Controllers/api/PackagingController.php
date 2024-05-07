@@ -29,7 +29,7 @@ class PackagingController extends Controller
 
         return response([
             'message' => 'Show Packaging Successfully',
-            'data' => $packaging
+            'data' => $packaging 
         ], 200);
     }
 
