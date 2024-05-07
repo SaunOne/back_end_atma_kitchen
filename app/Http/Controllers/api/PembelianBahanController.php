@@ -11,7 +11,9 @@ class PembelianBahanController extends Controller
 {
     public function showAll()
     {
-        $pembelianBahans = PembelianBahan::all();
+        $pembelianBahans = PembelianBahan::select('pembelian_bahan.*', 'bahan.*')
+        ->join('bahan', 'pembelian_bahan.id_bahan', '=', 'bahan.id_bahan')
+        ->get();
 
         return response([
             'message' => 'All Pembelian Bahan Retrieved',
