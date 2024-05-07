@@ -16,7 +16,7 @@ class Customer
      */
     public function handle(Request $request, Closure $next): Response
     {   
-        if(Auth::user()->id_user > 4){
+        if(Auth::user()->id_role > 4){
             return response([
                 "message" => "User is not Customer",
             ]);

@@ -14,8 +14,7 @@ class AbsensiController extends Controller
         $absensi = Absensi::select('absensi.*', 'pegawai.*')
         ->join('pegawai', 'absensi.id_user', '=', 'pegawai.id_user')
         ->get();
-
-
+  
         return response([
             'message' => 'All Absensi Retrieved',
             'data' => $absensi

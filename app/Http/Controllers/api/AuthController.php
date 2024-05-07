@@ -40,7 +40,7 @@ class AuthController extends Controller
         if ($validate->fails()) {
             return response(
                 ["Message" => $validate->errors()->first(), 400]
-            );
+            );  
         }
 
         $data['password'] = bcrypt($request->password);
@@ -91,8 +91,8 @@ class AuthController extends Controller
         }
     }
 
-    public function cekVerify(){
-
+    public function cekVerify()
+    {
     }
 
     public function login(Request $request)
@@ -103,21 +103,25 @@ class AuthController extends Controller
             'email' => 'required|email:rfc,dns',
             'password' => 'required|min:8',
         ]);
+
+        
         if ($validate->fails()) {
             return response(['message' => $validate->errors()->first()], 400);
         }
 
         if (!Auth::attempt($loginData)) {
-            return response(['message' => 'Invalid email & password match'], 401);
+            return response(['message' => 'Invalid email & password  match'], 401);
         }
         /** @var \App\Models\User $user  **/
         $user = Auth::user();
         $result = $user->createToken('Authentication Token')->accessToken;
 
+        $data = User::join('role', 'users.id_role', '=', 'role.id_role')
+            ->select('users.*', 'role.*')->where('users.id_user',$user->id_user)->first();
 
         return response([
             'message' => 'Authenticated',
-            'data' => $user,
+            'data' => $data,
             'token_type' => 'Bearer',
             'access_token' => $result
         ]);
@@ -132,7 +136,7 @@ class AuthController extends Controller
             $request->only('email')
         );
 
-        if($status === Password::RESET_LINK_SENT){
+        if ($status === Password::RESET_LINK_SENT) {
             return response([
                 "message" => "Email Link successfully sent",
                 "status" => 200,
@@ -155,7 +159,7 @@ class AuthController extends Controller
     {
         $data = $request->all();
 
-        $validate = Validator::make($data,[
+        $validate = Validator::make($data, [
             'token' => 'required',
             'email' => 'required|email',
             'password' => 'required|min:8|confirmed',
@@ -179,7 +183,7 @@ class AuthController extends Controller
             }
         );
 
-        if($status == Password::RESET_LINK_SENT){
+        if ($status == Password::RESET_LINK_SENT) {
             return response([
                 "message" => "Reset Password Successful",
                 "status" => $status,
@@ -200,13 +204,13 @@ class AuthController extends Controller
     public function updatePassword($newPassword, $id)
     {
         $user = User::find($id);
-        if($user['id_role'] === 4){
+        if ($user['id_role'] === 4) {
             return response([
                 "message" => "Customer can't update password with this mthode",
                 "status" => 405
             ]);
         }
-        
+
         $user->password = Hash::make($newPassword);
         $user->save();
 
@@ -216,7 +220,8 @@ class AuthController extends Controller
         ]);
     }
 
-    public function cekActive($id){
+    public function cekActive($id)
+    {
 
         $user = User::find($id);
         return response([
