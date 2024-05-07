@@ -4,14 +4,29 @@ namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Penitip;
+use App\Models\Produk;
+use App\Models\ProdukTitipan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class PenitipController extends Controller
 {
     public function showAll()
     {
         $penitips = Penitip::all();
+
+        foreach ($penitips as $penitip) {
+            $products = DB::table('produk_titipan as PT')
+                ->select('P.*', 'PR.*', 'RS.*')
+                ->join('penitip as P', 'P.id_penitip', '=', 'PT.id_penitip')
+                ->join('produk as PR', 'PT.id_produk', '=', 'PR.id_produk')
+                ->join('ready_stok as RS', 'PR.id_stok_produk', '=', 'RS.id_stok_produk')
+                ->whereColumn('PT.ID_PENITIP', '=', 'P.ID_PENITIP')
+                ->get();
+
+            $penitip->produk = $products;
+        }
 
         return response([
             'message' => 'All Penitip Retrieved',

@@ -4,15 +4,15 @@ namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ProdukTitipan;
+use App\Models\Produk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class ProdukTitipanController extends Controller
 {
-    public function showAll()
+    public function showAll($id)
     {
         $produkTitipans = ProdukTitipan::all();
-
         return response([
             'message' => 'All Produk Titipan Retrieved',
             'data' => $produkTitipans

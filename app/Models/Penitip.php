@@ -14,5 +14,6 @@ class Penitip extends Model
     protected $fillable = [
         'nama_penitip',
         'no_telp_penitip',
+        'alamat',
     ];
 }
