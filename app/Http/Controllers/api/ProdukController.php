@@ -22,7 +22,24 @@ class ProdukController extends Controller
     public function showAll()
     {
         $produks = Produk::all();
-        
+
+        foreach ($produks as $produk) {
+            if ($produk->jenis_produk == "Titipan") {
+                
+            } else if ($produk->jenis_produk == "Hampers") {
+                $products = DB::table('detail_hampers as dh')
+                    ->join('hampers as h', 'dh.id_hampers', '=', 'h.id_produk')
+                    ->join('produk_utama as pu', 'pu.id_produk', '=', 'dh.id_produk')
+                    ->join('produk as p', 'p.id_produk', '=', 'pu.id_produk')
+                    ->select('p.*')
+                    ->where('h.id_produk', '=', $produk->id_produk)
+                    ->get();
+                    $produk->produk = $products;
+            } else if ($produk->jenis_produk == "Utama") {
+                
+            }
+        }
+
         return response([
             'message' => 'All Produk Retrieved',
             'data' => $produks
@@ -46,13 +63,13 @@ class ProdukController extends Controller
 
     public function searchProduk($search)
     {
-        
-        $result = Produk::where('nama_produk', 'like' , '%' . $search . '%')
-        ->orWhere('nama_produk', 'like' , '%' . $search . '%')
-        ->orWhere('jenis_produk','like', '%' . $search . '%')
-        ->orWhere('harga','like', '%' . $search . '%')
-        ->orWhere('deskripsi','like', '%' . $search . '%')
-        ->get();
+
+        $result = Produk::where('nama_produk', 'like', '%' . $search . '%')
+            ->orWhere('nama_produk', 'like', '%' . $search . '%')
+            ->orWhere('jenis_produk', 'like', '%' . $search . '%')
+            ->orWhere('harga', 'like', '%' . $search . '%')
+            ->orWhere('deskripsi', 'like', '%' . $search . '%')
+            ->get();
 
         if ($result === []) {
             return response([
@@ -82,7 +99,7 @@ class ProdukController extends Controller
                 if ($validate->fails()) {
                     return response(['message' => $validate->errors()->first()], 400);
                 }
-            } else if($data['jenis_produk'] == 'produk titipan'){
+            } else if ($data['jenis_produk'] == 'produk titipan') {
                 $validate = Validator::make($data, [
                     'id_penitip' => 'required',
                     'jumlah_produk_dititip' => 'required',
@@ -90,7 +107,7 @@ class ProdukController extends Controller
                 if ($validate->fails()) {
                     return response(['message' => $validate->errors()->first()], 400);
                 }
-            } else if($data['jenis_produk'] == 'hampers'){
+            } else if ($data['jenis_produk'] == 'hampers') {
                 $validate = Validator::make($data, [
                     'id_packaging' => 'required',
                     'limit_harian' => 'required',
