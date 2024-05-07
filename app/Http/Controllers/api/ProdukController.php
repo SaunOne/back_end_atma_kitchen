@@ -22,9 +22,7 @@ class ProdukController extends Controller
     public function showAll()
     {
         $produks = Produk::all();
-
         
-
         return response([
             'message' => 'All Produk Retrieved',
             'data' => $produks
