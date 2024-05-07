@@ -22,7 +22,7 @@ class PenitipController extends Controller
                 ->join('penitip as P', 'P.id_penitip', '=', 'PT.id_penitip')
                 ->join('produk as PR', 'PT.id_produk', '=', 'PR.id_produk')
                 ->join('ready_stok as RS', 'PR.id_stok_produk', '=', 'RS.id_stok_produk')
-                ->whereColumn('PT.ID_PENITIP', '=', 'P.ID_PENITIP')
+                ->where('PT.ID_PENITIP', '=', $penitip->id_penitip)
                 ->get();
 
             $penitip->produk = $products;
