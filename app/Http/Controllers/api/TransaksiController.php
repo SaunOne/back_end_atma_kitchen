@@ -27,7 +27,6 @@ class TransaksiController extends Controller
     {
         $id_user =  Auth::user()->id_user;
         $transaksis = Transaksi::where('id_user', $id_user)->get();
-
         foreach ($transaksis as $transaksi) {
             $detail_transaksis = DetailTransaksi::where('id_transaksi', $transaksi->id_transaksi)->get();
             $transaksi->detail_transaksi = $detail_transaksis;

@@ -21,7 +21,7 @@ class ProdukController extends Controller
 {
     public function showAll()
     {
-        $produks = Produk::all();
+        $produks = Produk::join('ready_stok', 'ready_stok.id_stok_produk' , '=' , 'produk.id_stok_produk')->select('produk.*','ready_stok.*')->get();
 
         foreach ($produks as $produk) {
             if ($produk->jenis_produk == "Titipan") {
@@ -31,12 +31,13 @@ class ProdukController extends Controller
                     ->join('hampers as h', 'dh.id_hampers', '=', 'h.id_produk')
                     ->join('produk_utama as pu', 'pu.id_produk', '=', 'dh.id_produk')
                     ->join('produk as p', 'p.id_produk', '=', 'pu.id_produk')
-                    ->select('p.*')
+                    ->join('ready_stok as rs', 'rs.id_stok_produk' , '=', 'p.id_stok_produk')
+                    ->select('p.*','rs.*')
                     ->where('h.id_produk', '=', $produk->id_produk)
                     ->get();
-                    $produk->produk = $products;
+                $produk->produk = $products;
             } else if ($produk->jenis_produk == "Utama") {
-                
+
             }
         }
 
