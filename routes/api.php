@@ -114,5 +114,5 @@ Route::middleware(['auth:api', 'customer'])->group(function () {
      Route::post('/user/update-profile', [App\Http\Controllers\api\UserController::class, 'updateProfile']);
 
      //transaksi
-     Route::get('/user/transaksi',[App\http\Controllers\api\TransaksiController::class,'showByUser']);
+     Route::get('/transaksi',[App\http\Controllers\api\TransaksiController::class,'showByUser']);
 });
