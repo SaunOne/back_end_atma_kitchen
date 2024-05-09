@@ -77,7 +77,7 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
      Route::delete('/hampers/{id}', [App\Http\Controllers\api\HampersController::class, 'destroy']);
 
      //penitip
-     Route::get('/admin/penitip', [App\Http\Controllers\api\PenitipController::class, 'showAll']);
+     Route::get('/penitip', [App\Http\Controllers\api\PenitipController::class, 'showAll']);
      Route::get('/penitip/{id}', [App\Http\Controllers\api\PenitipController::class, 'showById']);
      Route::post('/penitip', [App\Http\Controllers\api\PenitipController::class, 'store']);
      Route::put('/penitip/{id}', [App\Http\Controllers\api\PenitipController::class, 'update']);
