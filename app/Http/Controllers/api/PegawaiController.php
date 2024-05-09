@@ -38,10 +38,7 @@ class PegawaiController extends Controller
         $data = $request->all();
 
         $validate = Validator::make($data, [
-            'gaji' => 'required',
-            'bonus_gaji' => 'required',
             'jabatan' => 'required',
-            'id_user' => 'required',
         ]);
 
         if ($validate->fails()) {

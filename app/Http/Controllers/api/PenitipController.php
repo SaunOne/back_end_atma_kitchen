@@ -99,7 +99,7 @@ class PenitipController extends Controller
     public function destroy($id)
     {
         $penitip = Penitip::find($id);
-
+        // return response(['message' => $penitip], 404);
         if (!$penitip) {
             return response(['message' => 'Penitip not found'], 404);
         }
