@@ -11,7 +11,9 @@ class PegawaiController extends Controller
 {
     public function showAll()
     {
-        $pegawais = Pegawai::select('pegawai.*' , 'users.*')->join('users' , 'users.id_user' , '=' , 'pegawai.id_user')->get();
+        $pegawais = Pegawai::join('users', 'users.id_user', '=', 'pegawai.id_user')
+        ->select('pegawai.*', 'users.*')
+        ->get();
 
         return response([
             'message' => 'All Pegawai Retrieved',

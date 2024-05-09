@@ -4,7 +4,11 @@ namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Produk;
+use App\Models\Alamat;
+use App\Models\Pegawai;
+use App\Models\DetailTransaksi;
 use App\Models\User;
+use App\Models\Transaksi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -13,19 +17,40 @@ use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
-    public function showAll(){
+    public function showAll()
+    {
 
         $user = User::all();
 
         return response()->json($user);
     }
 
-    public function getProfile(){
-        $user = Auth::user();
+    public function getProfile()
+    {
+        $id = Auth::user()->id_user;
+
+        $user = User::select('users.*', 'point.*', 'wallet.*')
+            ->join('point', 'users.id_user', '=', 'point.id_user')
+            ->join('wallet', 'users.id_user', '=', 'wallet.id_user')
+            ->where('users.id_user', '=', 57)
+            ->first();
 
         if (!$user) {
             return response(['message' => 'Users not found'], 404);
         }
+
+        $user->alamat = Alamat::select()->where('id_user', '=', 57)->get();
+
+        $user->transaksis = Transaksi::select()->where('id_user', '=', $user['id_user'])->get();
+
+        foreach ($user->transaksis as $transaksi) {
+            $transaksi->produk = DetailTransaksi::select('detail_transaksi.*', 'produk.*')
+                ->join('produk', 'detail_transaksi.id_produk', '=', 'produk.id_produk')
+                ->where('id_transaksi', '=', $transaksi['id_transaksi'])
+                ->get();
+        }
+
+
 
         return response([
             'message' => 'success get data user',
@@ -35,7 +60,7 @@ class UserController extends Controller
 
     public function updateProfile(Request $request)
     {
-      
+
         $data = $request->all();
         $user = User::find(auth()->id());
 
@@ -56,7 +81,7 @@ class UserController extends Controller
         }
 
 
-        if($request->hasFile('foto_profile')){
+        if ($request->hasFile('foto_profile')) {
             // kalau kalian membaca ini, ketahuilah bahwa gambar tidak akan bisa diupdate karena menggunakan method PUT ;)
             // kalian bisa mengubahnya menjadi POST atau PATCH untuk mengupdate gambar
             $uploadFolder = 'users';
@@ -68,7 +93,7 @@ class UserController extends Controller
             // Storage::disk('public')->delete('users/'.$user->image_profile);
 
             // set thumbnail yang baru
-            
+
             $data['foto_profile'] = $uploadedImageResponse;
             return response([
                 'message' => storage_path('users/' . $uploadedImageResponse),
@@ -77,7 +102,7 @@ class UserController extends Controller
 
         $data2 = json_encode($request->all());
 
-        $user->update($data); 
+        $user->update($data);
 
         return response([
             'message' => 'Update Profile Success',
@@ -86,7 +111,8 @@ class UserController extends Controller
         ], 200);
     }
 
-    public function findByIdUser($id){
+    public function findByIdUser($id)
+    {
         $user = User::find($id);
 
         if (!$user) {
@@ -99,9 +125,10 @@ class UserController extends Controller
         ]);
     }
 
-    public function test(){
-        $user = DB::table('password_reset_tokens')->select('token')->where('email','tinartinar720@gmail.com')->value('column');
-        
+    public function test()
+    {
+        $user = DB::table('password_reset_tokens')->select('token')->where('email', 'tinartinar720@gmail.com')->value('column');
+
         return response([
             $user
         ]);
