@@ -20,10 +20,13 @@ class UserController extends Controller
 {
     public function showAll()
     {
+        $users = User::where('id_role', 4)->get();
 
-        $user = User::all();
+        if ($users->isEmpty()) {
+            return response()->json(['message' => 'No users found with role ID 4'], 404);
+        }
 
-        return response()->json($user);
+        return response()->json($users);
     }
 
     public function getProfile()
