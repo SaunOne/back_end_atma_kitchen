@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Mail\VerificationAccount;
 use App\Mail\VerifikasiEmail;
 use App\Models\User;
+use App\Models\Wallet;
+use App\Models\Point;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -50,6 +52,17 @@ class AuthController extends Controller
         $data['active'] = false;
         $user = User::create($data);
 
+        $data['id_user'] = $user->id_user;
+        $data['jumlah_saldo'] = 0;
+        $wallet = new Wallet;
+        $wallet->id_user = $user->id_user;
+        $wallet->jumlah_saldo = 0;
+        $wallet->save();
+        $point = new Point;
+        $point->id_user = $user['id_user'];
+        $point->jumlah_point = 0;
+        $point->save();
+
         $details = [
             'username' => $request->username,
             'website' => 'Atma Kitchen',
@@ -73,12 +86,14 @@ class AuthController extends Controller
             ->where('verify_key', $verify_key)
             ->exists();
 
+
         if ($keyCheck) {
             $user = User::where('verify_key', $verify_key)
                 ->update([
                     'active' => 1,
                     'email_verified_at' => date('Y-m-d H:i:s'),
                 ]);
+
             return ([
                 'Message' => "Verifikasi berhasil. Akun anda sudah aktif.",
             ]);
@@ -133,14 +148,14 @@ class AuthController extends Controller
         $request->validate(['email' => 'required|email']);
 
         $user = DB::table('users')->where('email', $request->only('email'))->first();
-        
+
         if (!$user) {
             return response([
                 // "data" =>  $user->active,
                 "status-code" => 400,
             ]);
         }
-        if(!$user->active){
+        if (!$user->active) {
             return response([
                 "data" => !$user->active
             ]);

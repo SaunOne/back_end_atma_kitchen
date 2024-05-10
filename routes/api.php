@@ -16,9 +16,6 @@ Route::post('/forgot-password', [App\Http\Controllers\Api\AuthController::class,
 Route::post('/reset-password', [App\Http\Controllers\Api\AuthController::class, 'resetPassword'])->middleware('guest')->name('password.update');
 
 
-
-//test
-
 Route::get('/test', [App\Http\Controllers\Api\UserController::class, 'test']);
 
 Route::middleware(['auth:api', 'owner'])->group(function () {

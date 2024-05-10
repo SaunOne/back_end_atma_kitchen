@@ -42,9 +42,9 @@ class UserController extends Controller
 
         $user->alamat = Alamat::select()->where('id_user', '=', 57)->get();
 
-        $user->transaksis = Transaksi::select()->where('id_user', '=', $user['id_user'])->get();
+        $user->pesanan = Transaksi::select()->where('id_user', '=', $user['id_user'])->get();
 
-        foreach ($user->transaksis as $transaksi) {
+        foreach ($user->pesanan as $transaksi) {
             $transaksi->produk = DetailTransaksi::select('detail_transaksi.*', 'produk.*')
                 ->join('produk', 'detail_transaksi.id_produk', '=', 'produk.id_produk')
                 ->where('id_transaksi', '=', $transaksi['id_transaksi'])
@@ -77,7 +77,6 @@ class UserController extends Controller
 
 
         if ($validate->fails()) {
-            $user->save();
             return response(['message' => $validate->errors()->first()], 400);
         }
 
@@ -85,7 +84,10 @@ class UserController extends Controller
         if ($request->hasFile('foto_profile')) {
             $uploadFolder = 'images';
             $image = $request->file('foto_profile');
-
+            
+            if ($user->foto_profile) {
+                Storage::disk('public')->delete($user->foto_profile);
+            }
             // Generate nama file acak dengan 12 karakter
             $randomFileName = Str::random(12);
 
