@@ -107,6 +107,12 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
      Route::put('/produk-titipan/{id}', [App\Http\Controllers\api\ProdukTitipanController::class, 'update']);
      Route::delete('/produk-titipan/{id}', [App\Http\Controllers\api\ProdukTitipanController::class, 'destroy']);
 
+     //penitip
+     Route::get('/ready-stok', [App\Http\Controllers\api\ReadyStokController::class, 'showAll']);
+     Route::get('/ready-stok/{id}', [App\Http\Controllers\api\ReadyStokController::class, 'showById']);
+     Route::post('/ready-stok', [App\Http\Controllers\api\ReadyStokController::class, 'store']);
+     Route::put('/ready-stok/{id}', [App\Http\Controllers\api\ReadyStokController::class, 'update']);
+     Route::delete('/ready-stok/{id}', [App\Http\Controllers\api\ReadyStokController::class, 'destroy']);
 
      //packaging
      Route::get('/packaging', [App\Http\Controllers\api\PackagingController::class, 'showAll']);
