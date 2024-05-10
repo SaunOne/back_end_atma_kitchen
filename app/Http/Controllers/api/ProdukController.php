@@ -236,7 +236,7 @@ class ProdukController extends Controller
                 //ketika produk lama
                 // return (["response " => $data]);
                 DB::table('ready_stok')
-                    ->where('id_stok_produk', $data['id_produk_stok'])
+                    ->where('id_stok_produk', $data['id_stok_produk'])
                     ->increment('jumlah_stok', $data['jumlah_produk_dititip']);
 
 
