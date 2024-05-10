@@ -123,7 +123,7 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
 
      Route::get('/customers', [App\Http\Controllers\api\UserController::class, 'showAll']);
      
-     Route::post('/update-password/{id}', [App\Http\Controllers\api\AuthController::class, 'updatePassword']);
+     Route::post('/update-password', [App\Http\Controllers\api\AuthController::class, 'updatePassword']);
 
 
 
