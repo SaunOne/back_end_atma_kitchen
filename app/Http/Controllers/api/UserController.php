@@ -22,9 +22,7 @@ class UserController extends Controller
     {
         $users = User::where('id_role', 4)->get();
 
-        if ($users->isEmpty()) {
-            return response()->json(['message' => 'No users found with role ID 4'], 404);
-        }
+        $user = User::where('id_role',4)->get();
 
         return response()->json($users);
     }
