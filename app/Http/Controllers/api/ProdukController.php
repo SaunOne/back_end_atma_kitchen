@@ -68,7 +68,20 @@ class ProdukController extends Controller
         ], 200);
     }
 
-    
+    // public function showByIdAll($id)
+    // {
+        
+    //     $produk = Produk::find($id)->first();
+
+    //     if (!$produk) {
+    //         return response(['message' => 'Produk not found'], 404);
+    //     }
+
+    //     return response([
+    //         'message' => 'Show Produk Successfully',
+    //         'data' => $produk
+    //     ], 200);
+    // }
 
     public function searchProduk($search)
     {
@@ -100,14 +113,11 @@ class ProdukController extends Controller
         $data = $request->all();
 
         $data['limit_harian'] = 5;
-
+        
         $validate = Validator::make($data, [
             'id_packaging' => 'required',
             'jenis_produk' => 'required',
 
-        ]);
-        return response([
-            "message" => $data,
         ]);
         
         if($data['jenis_produk'] == 'Hampers'){
@@ -131,8 +141,9 @@ class ProdukController extends Controller
             }
 
         }
-
-        if(!isset($data['id_penitip']) && isset($data['jenis_produk']) == 'Titipan' ){
+        
+        if(!isset($data['id_penitip']) && ($data['jenis_produk'] == 'Titipan') ){
+            
             $produk = Produk::select('id_stok_produk')->find($data['id_produk'])->first();
             $data['id_stok_produk'] = $produk->id_stok_produk;
         }
@@ -155,6 +166,7 @@ class ProdukController extends Controller
             $readyStok = ReadyStok::create($data);
 
             $data['id_stok_produk'] = $readyStok->id_stok_produk;
+            
         }
 
         if ($request->hasFile('image_produk')) {
@@ -181,13 +193,14 @@ class ProdukController extends Controller
         //kalo engga ada
         if (!isset($data['id_produk']) && isset($data['jenis_produk']) == 'Utama') {
             //ini create produk baru
-
+            
             $produk = Produk::create($data);
             $data['id_produk'] = $produk['id_produk'];
             $data['id_ready_stok'] = $produk->id_stok_produk;
         } else {
             //kalo id produknya ada
             // return (["message" => "success update", "data" => $data]);
+            
             $produk = Produk::find($data['id_produk'])->first();
             $produk->update($data);
             $data['id_ready_stok'] = $produk->id_stok_produk;
