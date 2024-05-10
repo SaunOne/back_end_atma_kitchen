@@ -101,6 +101,13 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
      //Produk Utama
 
 
+     //packaging
+     Route::get('/packaging', [App\Http\Controllers\api\PackagingController::class, 'showAll']);
+     Route::get('/packaging/{id}', [App\Http\Controllers\api\PackagingController::class, 'showById']);
+     Route::post('/packaging', [App\Http\Controllers\api\PackagingController::class, 'store']);
+     Route::put('/packaging/{id}', [App\Http\Controllers\api\PackagingController::class, 'update']);
+     Route::delete('/packaging/{id}', [App\Http\Controllers\api\PackagingController::class, 'destroy']);
+
      
      
 
