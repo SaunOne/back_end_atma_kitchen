@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class Pegawai extends Model
 {
     protected $table = 'pegawai';
-    protected $primaryKey = 'id_user';
     public $incrementing = false; // To ensure that the id_user is not auto-incrementing
     public $timestamps = false;
 

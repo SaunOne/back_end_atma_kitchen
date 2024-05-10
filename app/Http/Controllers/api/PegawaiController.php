@@ -97,8 +97,8 @@ class PegawaiController extends Controller
             'message' => 'Pegawai created successfully',
             'data' => $pegawai,
             'data' => $user
-        ], 200);
-    }
+    ],200);
+}
 
     public function update(Request $request, $id)
     {
