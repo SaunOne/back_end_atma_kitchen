@@ -47,7 +47,7 @@ class ProdukController extends Controller
         ], 200);
     }
 
-    
+
 
     public function showById($id)
     {
@@ -134,20 +134,20 @@ class ProdukController extends Controller
         }
 
         if ($data['jenis_produk'] === 'produk titipan' && isset($data['id_produk'])) {
-            $data['id_ready_stok'] = Produk::where('id_produk', $data['id_produk'])->value('id_ready_stok');
+            $data['id_stok_produk'] = Produk::where('id_produk', $data['id_produk'])->value('id_stok_produk');
             $data['jumlah_stok'] = $data['jumlah_produk_dititip'];
         }
 
         $readyStok = ReadyStok::updateOrCreate(
-            ['id_ready_stok' => $data['id_ready_stok'] ?? null],
+            ['id_stok_produk' => $data['id_stok_produk'] ?? null],
             ['jumlah_stok' => DB::raw('jumlah_stok + ' . ($data['jumlah_stok'] ?? 0))]
         );
 
-        if (!isset($data['id_ready_stok'])) {
-            $readyStok['satuan'] = $data['satuan'];
+        if (!isset($data['id_stok_produk'])) {
+            // $readyStok['satuan'] = $data['satuan'];  
             $readyStok['jumlah_stok'] = $data['jumlah_stok'];
             $readyStok->save();
-            $data['id_ready_stok'] = $readyStok['id_ready_stok'];
+            $data['id_stok_produk'] = $readyStok['id_stok_produk'];
         }
 
         $produk = Produk::updateOrCreate(
@@ -158,15 +158,18 @@ class ProdukController extends Controller
         $data['id_produk'] = $produk['id_produk'];
 
         switch ($data['jenis_produk']) {
-            case 'produk utama':
+            case 'Utama':
                 app(ProdukUtamaController::class)->store(new Request($data));
                 break;
-            case 'hampers':
+            case 'Hampers':
+                
                 $data['DetailHampers']['id_hampers'] = $produk['id_produk'];
+                
                 app(HampersController::class)->store(new Request($data));
+                return response(['data' =>  $data]);
                 $this->handleDetailHampers($data);
                 break;
-            case 'produk titipan':
+            case 'Titipan':
                 app(ProdukTitipanController::class)->store(new Request($data));
                 break;
         }

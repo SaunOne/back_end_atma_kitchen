@@ -100,6 +100,13 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
 
      //Produk Utama
 
+     //penitip
+     Route::get('/produk-titipan', [App\Http\Controllers\api\ProdukTitipanController::class, 'showAll']);
+     Route::get('/produk-titipan/{id}', [App\Http\Controllers\api\ProdukTitipanController::class, 'showById']);
+     Route::post('/produk-titipan', [App\Http\Controllers\api\ProdukTitipanController::class, 'store']);
+     Route::put('/produk-titipan/{id}', [App\Http\Controllers\api\ProdukTitipanController::class, 'update']);
+     Route::delete('/produk-titipan/{id}', [App\Http\Controllers\api\ProdukTitipanController::class, 'destroy']);
+
 
      //packaging
      Route::get('/packaging', [App\Http\Controllers\api\PackagingController::class, 'showAll']);
