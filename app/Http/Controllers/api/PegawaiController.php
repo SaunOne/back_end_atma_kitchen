@@ -8,6 +8,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class PegawaiController extends Controller
 {
@@ -50,7 +52,7 @@ class PegawaiController extends Controller
         }
         if($data['jabatan'] == 'Owner'){
             $data['id_role'] = 1;
-        } else if($data['jabatan'] == 'Manager Oprasional'){
+        } else if($data['jabatan'] == 'Manajer Oprasional'){
             $data['id_role'] = 2;
         } else if($data['jabatan'] == 'Admin'){
             $data['id_role'] = 3;
@@ -63,6 +65,7 @@ class PegawaiController extends Controller
             $uploadFolder = 'images';
             $image = $request->file('foto_profile');
 
+            
             // Generate nama file acak dengan 12 karakter
             $randomFileName = Str::random(12);
 
@@ -87,16 +90,19 @@ class PegawaiController extends Controller
 
         $data['password'] = bcrypt($request->password);
         $user = User::create($data);
-        $data['id_user'] = $user->id_user; 
+        $pegawai = new Pegawai;
+        $pegawai->gaji = 0;
+        $pegawai->bonus_gaji = 0;
+        $pegawai->jabatan = $data['jabatan'];
+        $pegawai->id_user = $user->id_user;
 
-        $data['gaji'] = 0;
-        $pegawai = Pegawai::create($data);
+        $pegawai->save();
 
 
         return response([
             'message' => 'Pegawai created successfully',
             'data' => $pegawai,
-            'data' => $user
+            'data' => $user     
         ], 200);
     }
 
@@ -107,9 +113,50 @@ class PegawaiController extends Controller
         if (!$pegawai) {
             return response(['message' => 'Pegawai not found'], 404);
         }
-
+        $user = User::find($id);
+        
         $data = $request->all();
 
+        if ($request->hasFile('foto_profile')) {
+            $uploadFolder = 'images';
+            $image = $request->file('foto_profile');
+            
+            if ($user->foto_profile) {
+                Storage::disk('public')->delete($user->foto_profile);
+            }
+            // Generate nama file acak dengan 12 karakter
+            $randomFileName = Str::random(12);
+
+            // Dapatkan ekstensi file asli
+            $extension = $image->getClientOriginalExtension();
+
+            // Gabungkan nama file acak dengan ekstensi
+            $fileNameToStore = $randomFileName . '.' . $extension;
+
+            // Simpan gambar
+            $image_uploaded_path = $image->storeAs($uploadFolder, $fileNameToStore, 'public');
+
+            // Mendapatkan nama file yang diunggah
+            $uploadedImageResponse = basename($image_uploaded_path);
+
+            // Set data foto profile baru
+            $data['foto_profile'] = $uploadedImageResponse;
+
+            return response([
+                'message' => storage_path('users/' . $uploadedImageResponse),
+            ]);
+        }
+        if($data['jabatan'] == 'Owner'){
+            $data['id_role'] = 1;
+        } else if($data['jabatan'] == 'Manajer Oprasional'){
+            $data['id_role'] = 2;
+        } else if($data['jabatan'] == 'Admin'){
+            $data['id_role'] = 3;
+        } else {
+            $data['id_role'] = 4;
+        }
+
+        $user->update($data);
         $pegawai->update($data);
 
         return response([
@@ -132,6 +179,10 @@ class PegawaiController extends Controller
             'bonus_gaji' => 'required',
         ]);
 
+        return response([
+            'message' => 'Pegawai updated successfully',
+            'data' => $data
+        ], 200);
         $data = $request->all();
 
         $pegawai->update($data);
