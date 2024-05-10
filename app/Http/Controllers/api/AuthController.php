@@ -224,8 +224,10 @@ class AuthController extends Controller
         //     : back()->withErrors(['email' => [__($status)]]);
     }
 
-    public function updatePassword(Request $request, $id)
+    public function updatePassword(Request $request)
     {
+        
+        $id = Auth::user()->id_user;
         $user = User::find($id);
         if ($user['id_role'] === 4) {
             return response([
