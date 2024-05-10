@@ -28,7 +28,7 @@ class ProdukController extends Controller
         $produks = Produk::join('ready_stok', 'ready_stok.id_stok_produk', '=', 'produk.id_stok_produk')->select('produk.*', 'ready_stok.*')->get();
 
 
-        
+
         foreach ($produks as $produk) {
             if ($produk->jenis_produk == "Titipan") {
             } else if ($produk->jenis_produk == "Hampers") {
@@ -55,7 +55,7 @@ class ProdukController extends Controller
 
     public function showById($id)
     {
-        
+
         $produk = Produk::find($id)->first();
 
         if (!$produk) {
@@ -70,7 +70,7 @@ class ProdukController extends Controller
 
     // public function showByIdAll($id)
     // {
-        
+
     //     $produk = Produk::find($id)->first();
 
     //     if (!$produk) {
@@ -107,21 +107,21 @@ class ProdukController extends Controller
     }
 
     public function store(Request $request)
-    {   
-        
+    {
+
 
         $data = $request->all();
 
         $data['limit_harian'] = 5;
-        
+
         $validate = Validator::make($data, [
             'id_packaging' => 'required',
             'jenis_produk' => 'required',
 
         ]);
-        
-        if($data['jenis_produk'] == 'Hampers'){
-            
+
+        if ($data['jenis_produk'] == 'Hampers') {
+
             $data['jumlah_stok'] = 0;
             $readyStok = ReadyStok::create($data);
             $data['id_stok_produk'] = $readyStok->id_stok_produk;
@@ -135,25 +135,26 @@ class ProdukController extends Controller
             $hamper->limit_harian = 5;
             $hamper->save();
 
-            foreach($data['detail_hampers'] as $dh){
+            foreach ($data['detail_hampers'] as $dh) {
                 $dh['id_hampers'] = $data['id_produk'];
                 DetailHampers::create($dh);
             }
-
         }
-        
-        if(!isset($data['id_penitip']) && ($data['jenis_produk'] == 'Titipan') ){
-            
+
+        //Penitip Lama
+        if (!isset($data['id_penitip']) && ($data['jenis_produk'] == 'Titipan')) {
+
             $produk = Produk::select('id_stok_produk')->find($data['id_produk'])->first();
             $data['id_stok_produk'] = $produk->id_stok_produk;
-        } 
+        }
 
-        if(isset($data['id_penitip']) && ($data['jenis_produk'] == 'Titipan') ){
+        //Penitip Baru
+        if (isset($data['id_penitip']) && ($data['jenis_produk'] == 'Titipan')) {
             $data['nama_produk_stok'] = $data['nama_produk'];
-        } 
-        
-        
-        
+        }
+
+
+
 
         //ketika membuat produk dengan stok baru
         if (!isset($data['id_stok_produk'])) {
@@ -174,7 +175,6 @@ class ProdukController extends Controller
             $readyStok = ReadyStok::create($data);
 
             $data['id_stok_produk'] = $readyStok->id_stok_produk;
-            
         }
 
         if ($request->hasFile('image_produk')) {
@@ -201,17 +201,17 @@ class ProdukController extends Controller
         //kalo engga ada
         if (!isset($data['id_produk']) && isset($data['jenis_produk']) == 'Utama') {
             //ini create produk baru
-            
+
             $produk = Produk::create($data);
             $data['id_produk'] = $produk['id_produk'];
             $data['id_ready_stok'] = $produk->id_stok_produk;
         } else {
             //kalo id produknya ada
             // return (["message" => "success update", "data" => $data]);
-            
+
             $produk = Produk::find($data['id_produk'])->first();
             $produk->update($data);
-            $data['id_ready_stok'] = $produk->id_stok_produk;
+            $data['id_stok_produk'] = $produk->id_stok_produk;
         }
 
         //create produk dan ketika produk titipan
@@ -234,17 +234,19 @@ class ProdukController extends Controller
                 ]);
 
                 //ketika produk lama
+                // return (["response " => $data]);
+                DB::table('ready_stok')
+                    ->where('id_stok_produk', $data['id_produk_stok'])
+                    ->increment('jumlah_stok', $data['jumlah_produk_dititip']);
 
-                $readyStok = ReadyStok::where('id_stok_produk', $data['id_stok_produk'])
-                    ->update(['jumlah_stok' => DB::raw('jumlah_stok + ' . $data['jumlah_produk_dititip'])]);
-                
+
                 $data['tanggal'] = now();
 
                 $produkTitipan = ProdukTitipan::create($data);
-                return (["message" => "success create titipan", "data" => $readyStok]);
+                return (["message" => "success create titipan", "data" => $data]);
                 break;
             case 'Hampers':
-                
+
                 break;
         }
 
