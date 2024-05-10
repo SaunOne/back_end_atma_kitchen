@@ -166,9 +166,9 @@ class PegawaiController extends Controller
     }
 
     public function updateGajiBonus(Request $request,$id){
-        $pegawai = Pegawai::find($id);
-
-        if (!$pegawai) {
+        $pegawai = Pegawai::find($id)->first();
+      
+        if (!$pegawai) {    
             return response(['message' => 'Pegawai not found'], 404);
         }
 
@@ -179,13 +179,7 @@ class PegawaiController extends Controller
             'bonus_gaji' => 'required',
         ]);
 
-        return response([
-            'message' => 'Pegawai updated successfully',
-            'data' => $data
-        ], 200);
-        $data = $request->all();
-
-        $pegawai->update($data);
+        $pegawai =  $pegawai->update($data);
 
         return response([
             'message' => 'Pegawai updated successfully',
