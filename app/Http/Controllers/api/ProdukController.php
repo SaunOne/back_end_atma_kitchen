@@ -149,7 +149,7 @@ class ProdukController extends Controller
         } 
 
         if(isset($data['id_penitip']) && ($data['jenis_produk'] == 'Titipan') ){
-            $data['nama_stok_produk'] = $data['nama_produk'];
+            $data['nama_produk_stok'] = $data['nama_produk'];
         } 
         
         
@@ -161,7 +161,7 @@ class ProdukController extends Controller
             $validate = Validator::make($data, [
                 // 'id_stok_produk' => 'required',
                 'satuan' => 'required',
-                // 'nama_produk_stok' => 'required',
+                'nama_produk_stok' => 'required',
             ]);
 
             if ($validate->fails()) {
