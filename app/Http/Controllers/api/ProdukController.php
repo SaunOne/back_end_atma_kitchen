@@ -5,6 +5,7 @@ namespace App\Http\Controllers\api;
 use App\Http\Controllers\Controller;
 use App\Models\DetailHampers;
 use App\Models\Produk;
+use App\Models\ProdukUtama;
 use App\Models\ReadyStok;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -15,7 +16,10 @@ use App\Http\Controllers\api\HampersController;
 use App\Http\Controllers\api\ReadyStokController;
 use App\Http\Controllers\api\DetailHampersController;
 use App\Models\Hampers;
+use App\Models\ProdukTitipan;
 use PhpParser\Node\Expr\CallLike;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class ProdukController extends Controller
 {
@@ -23,6 +27,8 @@ class ProdukController extends Controller
     {
         $produks = Produk::join('ready_stok', 'ready_stok.id_stok_produk', '=', 'produk.id_stok_produk')->select('produk.*', 'ready_stok.*')->get();
 
+
+        
         foreach ($produks as $produk) {
             if ($produk->jenis_produk == "Titipan") {
             } else if ($produk->jenis_produk == "Hampers") {
@@ -86,19 +92,53 @@ class ProdukController extends Controller
     }
 
     public function store(Request $request)
-    {
+    {   
+        
+
         $data = $request->all();
 
+        $data['limit_harian'] = 5;
+
         $validate = Validator::make($data, [
-            // 'id_packaging' => 'required',
+            'id_packaging' => 'required',
             'jenis_produk' => 'required',
-            
+
         ]);
+        return response([
+            "message" => $data,
+        ]);
+        
+        if($data['jenis_produk'] == 'Hampers'){
+            
+            $data['jumlah_stok'] = 0;
+            $readyStok = ReadyStok::create($data);
+            $data['id_stok_produk'] = $readyStok->id_stok_produk;
+            //create produk
+            $produk = Produk::create($data);
+            $data['id_produk'] = $produk['id_produk'];
+
+            $hamper = new Hampers;
+            $hamper->id_packaging = $data['id_packaging'];
+            $hamper->id_produk = $data['id_produk'];
+            $hamper->limit_harian = 5;
+            $hamper->save();
+
+            foreach($data['detail_hampers'] as $dh){
+                $dh['id_hampers'] = $data['id_produk'];
+                DetailHampers::create($dh);
+            }
+
+        }
+
+        if(!isset($data['id_penitip']) && isset($data['jenis_produk']) == 'Titipan' ){
+            $produk = Produk::select('id_stok_produk')->find($data['id_produk'])->first();
+            $data['id_stok_produk'] = $produk->id_stok_produk;
+        }
 
         //ketika membuat produk dengan stok baru
-        if(!isset($data['id_stok_produk'])){
+        if (!isset($data['id_stok_produk'])) {
             $validate = Validator::make($data, [
-                'id_stok_produk' => 'required',
+                // 'id_stok_produk' => 'required',
                 'satuan' => 'required',
                 'nama_produk_stok' => 'required',
             ]);
@@ -110,27 +150,86 @@ class ProdukController extends Controller
             }
             //jumlah stoknya kita 0 dulu
             $data['jumlah_stok'] = 0;
-            ReadyStok::create(([
-                $data
-            ]));
+            $readyStok = ReadyStok::create($data);
+
+            $data['id_stok_produk'] = $readyStok->id_stok_produk;
+        }
+
+        if ($request->hasFile('image_produk')) {
+            $uploadFolder = 'images';
+            $image = $request->file('image_produk');
+
+            if ($data['image_produk']) {
+                Storage::disk('public')->delete($data['image_produk']);
+            }
+            // Generate nama file acak dengan 12 karakter
+            $randomFileName = Str::random(12);
+            // Dapatkan ekstensi file asli
+            $extension = $image->getClientOriginalExtension();
+            // Gabungkan nama file acak dengan ekstensi
+            $fileNameToStore = $randomFileName . '.' . $extension;
+            // Simpan gambar
+            $image_uploaded_path = $image->storeAs($uploadFolder, $fileNameToStore, 'public');
+            // Mendapatkan nama file yang diunggah
+            $uploadedImageResponse = basename($image_uploaded_path);
+            // Set data foto profile baru
+            $data['image_produk'] = 'images/' . $uploadedImageResponse;
+        }
+
+        //kalo engga ada
+        if (!isset($data['id_produk']) && isset($data['jenis_produk']) == 'Utama') {
+            //ini create produk baru
+
+            $produk = Produk::create($data);
+            $data['id_produk'] = $produk['id_produk'];
+            $data['id_ready_stok'] = $produk->id_stok_produk;
+        } else {
+            //kalo id produknya ada
+            // return (["message" => "success update", "data" => $data]);
+            $produk = Produk::find($data['id_produk'])->first();
+            $produk->update($data);
+            $data['id_ready_stok'] = $produk->id_stok_produk;
         }
 
         //create produk dan ketika produk titipan
-        switch($data['jenis_produk']){
-            case 'Utama' :
+        switch ($data['jenis_produk']) {
+            case 'Utama':
+                $validate = Validator::make($data, [
+                    'id_stok_produk' => 'required',
+                    // 'satuan' => 'required',
+                    // 'nama_produk_stok' => 'required',
+                ]);
+                ProdukUtama::create($data);
+                break;
+            case 'Titipan':
+                $validate = Validator::make($data, [
+                    'id_penitip' => 'required',
+                    'nama_produk' => 'required',
+                    'jumlah_produk_dititip' => 'required',
+                    'harga' => 'required',
+                    'image_produk' => 'required'
+                ]);
+
+                //ketika produk lama
+
+                $readyStok = ReadyStok::where('id_stok_produk', $data['id_stok_produk'])
+                    ->update(['jumlah_stok' => DB::raw('jumlah_stok + ' . $data['jumlah_produk_dititip'])]);
                 
+                $data['tanggal'] = now();
+
+                $produkTitipan = ProdukTitipan::create($data);
+                return (["message" => "success create titipan", "data" => $readyStok]);
                 break;
-            case 'Titipan' :
-                break;
-            case 'Hampers' :
+            case 'Hampers':
+                
                 break;
         }
 
 
         return response([
-            "message" => !isset($data['id_stok']),
+            "message" => "Succes Add product Utama",
+            "data" => $data
         ]);
-
     }
 
 
