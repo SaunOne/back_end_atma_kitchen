@@ -161,7 +161,7 @@ class ProdukController extends Controller
             $validate = Validator::make($data, [
                 // 'id_stok_produk' => 'required',
                 'satuan' => 'required',
-                'nama_produk_stok' => 'required',
+                // 'nama_produk_stok' => 'required',
             ]);
 
             if ($validate->fails()) {
