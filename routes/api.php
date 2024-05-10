@@ -65,6 +65,9 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
      Route::put('/produk', [App\Http\Controllers\api\ProdukController::class, 'searchProduk']);
      Route::delete('/produk', [App\Http\Controllers\api\ProdukController::class, 'destroy']);
 
+     //produk-utama
+     Route::get('/produk-utama', [App\Http\Controllers\api\ProdukUtamaController::class, 'showAll']);
+
      //resep
      Route::get('/resep', [App\Http\Controllers\api\ResepController::class, 'showAll']);
      Route::get('/resep/{id}', [App\Http\Controllers\api\ResepController::class, 'showById']);

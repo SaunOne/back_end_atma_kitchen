@@ -4,6 +4,7 @@ namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Resep;
+use App\Models\Produk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -11,11 +12,18 @@ class ResepController extends Controller
 {
     public function showAll()
     {
-        $reseps = Resep::all();
+        $products = Produk::select()->where('jenis_produk','Utama')->get();
+
+        foreach ($products as $product) {
+            $product->resep = Resep::select('resep.*', 'bahan.*',)
+                ->join('bahan', 'bahan.id_bahan', 'resep.id_resep')
+                ->where('resep.id_produk',$product->id_produk)
+                ->get();
+        }
 
         return response([
             'message' => 'All Reseps Retrieved',
-            'data' => $reseps
+            'data' => $products
         ], 200);
     }
 
@@ -32,10 +40,13 @@ class ResepController extends Controller
             'data' => $resep
         ], 200);
     }
-    
+
     public function showByIdProduk($id)
     {
-        $resep = Resep::where('id_produk',$id)->get();
+        $resep = Resep::select('bahan.*','resep.*','produk.nama_produk')->join('bahan','bahan.id_bahan','resep.id_bahan')
+        ->join('produk_utama','produk_utama.id_produk','resep.id_produk')
+        ->join('produk','produk.id_produk','produk_utama.id_produk')
+        ->where('resep.id_produk', $id)->get();
 
         if (!$resep) {
             return response(['message' => 'Resep not found'], 404);
@@ -46,6 +57,8 @@ class ResepController extends Controller
             'data' => $resep
         ], 200);
     }
+
+    
 
     public function store(Request $request)
     {
@@ -81,9 +94,9 @@ class ResepController extends Controller
             return response(['message' => $validate->errors()->first()], 400);
         }
 
-        
-        foreach($data['reseps'] as $r){
-           Resep::create($r);
+
+        foreach ($data['reseps'] as $r) {
+            Resep::create($r);
         }
 
         return response([
