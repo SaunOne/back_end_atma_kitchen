@@ -14,6 +14,7 @@ class ProdukTitipanController extends Controller
     {   
         $produkTitipans = Produk::select('produk.*','produk_titipan.*')
         ->join('produk_titipan','produk_titipan.id_produk','produk.id_produk')
+        ->where('produk.jenis_produk','Titipan')
         ->get();
         
 
