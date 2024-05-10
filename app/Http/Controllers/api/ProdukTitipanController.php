@@ -12,8 +12,7 @@ class ProdukTitipanController extends Controller
 {
     public function showAll()
     {   
-        $produkTitipans = Produk::select('produk.*','produk_titipan.*')
-        ->join('produk_titipan','produk_titipan.id_produk','produk.id_produk')
+        $produkTitipans = Produk::select('produk.*')
         ->where('produk.jenis_produk','Titipan')
         ->get();
         
