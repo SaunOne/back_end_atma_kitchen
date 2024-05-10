@@ -146,10 +146,18 @@ class ProdukController extends Controller
             
             $produk = Produk::select('id_stok_produk')->find($data['id_produk'])->first();
             $data['id_stok_produk'] = $produk->id_stok_produk;
-        }
+        } 
+
+        if(isset($data['id_penitip']) && ($data['jenis_produk'] == 'Titipan') ){
+            $data['nama_stok_produk'] = $data['nama_produk'];
+        } 
+        
+        
+        
 
         //ketika membuat produk dengan stok baru
         if (!isset($data['id_stok_produk'])) {
+
             $validate = Validator::make($data, [
                 // 'id_stok_produk' => 'required',
                 'satuan' => 'required',
