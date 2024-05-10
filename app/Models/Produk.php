@@ -12,7 +12,7 @@ class Produk extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'id_ready_stok',
+        'id_stok_produk',
         'nama_produk',
         'harga',
         'quantity',
@@ -23,6 +23,6 @@ class Produk extends Model
 
     public function readyStok()
     {
-        return $this->belongsTo(ReadyStok::class, 'id_ready_stok');
+        return $this->belongsTo(ReadyStok::class, 'id_stok_produk');
     }
 }

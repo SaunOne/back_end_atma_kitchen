@@ -11,14 +11,15 @@ class AbsensiController extends Controller
 {
     public function showAll()
     {
-        $absensi = Absensi::select('absensi.*', 'pegawai.*')
+        $absensi = Absensi::select('absensi.*', 'pegawai.*','users.*')
         ->join('pegawai', 'absensi.id_user', '=', 'pegawai.id_user')
-        ->get();
+        ->join('users','users.id_user','=','pegawai.id_user')
+        ->get();    
   
         return response([
             'message' => 'All Absensi Retrieved',
             'data' => $absensi
-        ], 200);
+        ], 200);    
     }
 
     public function showById($id)

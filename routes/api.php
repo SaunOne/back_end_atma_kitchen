@@ -16,9 +16,6 @@ Route::post('/forgot-password', [App\Http\Controllers\Api\AuthController::class,
 Route::post('/reset-password', [App\Http\Controllers\Api\AuthController::class, 'resetPassword'])->middleware('guest')->name('password.update');
 
 
-
-//test
-
 Route::get('/test', [App\Http\Controllers\Api\UserController::class, 'test']);
 
 Route::middleware(['auth:api', 'owner'])->group(function () {
@@ -68,6 +65,9 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
      Route::put('/produk', [App\Http\Controllers\api\ProdukController::class, 'searchProduk']);
      Route::delete('/produk', [App\Http\Controllers\api\ProdukController::class, 'destroy']);
 
+     //produk-utama
+     Route::get('/produk-utama', [App\Http\Controllers\api\ProdukUtamaController::class, 'showAll']);
+
      //resep
      Route::get('/resep', [App\Http\Controllers\api\ResepController::class, 'showAll']);
      Route::get('/resep/{id}', [App\Http\Controllers\api\ResepController::class, 'showById']);
@@ -100,6 +100,26 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
 
      //Produk Utama
 
+     //penitip
+     Route::get('/produk-titipan', [App\Http\Controllers\api\ProdukTitipanController::class, 'showAll']);
+     Route::get('/produk-titipan/{id}', [App\Http\Controllers\api\ProdukTitipanController::class, 'showById']);
+     Route::post('/produk-titipan', [App\Http\Controllers\api\ProdukTitipanController::class, 'store']);
+     Route::put('/produk-titipan/{id}', [App\Http\Controllers\api\ProdukTitipanController::class, 'update']);
+     Route::delete('/produk-titipan/{id}', [App\Http\Controllers\api\ProdukTitipanController::class, 'destroy']);
+
+     //penitip
+     Route::get('/ready-stok', [App\Http\Controllers\api\ReadyStokController::class, 'showAll']);
+     Route::get('/ready-stok/{id}', [App\Http\Controllers\api\ReadyStokController::class, 'showById']);
+     Route::post('/ready-stok', [App\Http\Controllers\api\ReadyStokController::class, 'store']);
+     Route::put('/ready-stok/{id}', [App\Http\Controllers\api\ReadyStokController::class, 'update']);
+     Route::delete('/ready-stok/{id}', [App\Http\Controllers\api\ReadyStokController::class, 'destroy']);
+
+     //packaging
+     Route::get('/packaging', [App\Http\Controllers\api\PackagingController::class, 'showAll']);
+     Route::get('/packaging/{id}', [App\Http\Controllers\api\PackagingController::class, 'showById']);
+     Route::post('/packaging', [App\Http\Controllers\api\PackagingController::class, 'store']);
+     Route::put('/packaging/{id}', [App\Http\Controllers\api\PackagingController::class, 'update']);
+     Route::delete('/packaging/{id}', [App\Http\Controllers\api\PackagingController::class, 'destroy']);
 
      
      
@@ -114,5 +134,5 @@ Route::middleware(['auth:api', 'customer'])->group(function () {
      Route::post('/user/update-profile', [App\Http\Controllers\api\UserController::class, 'updateProfile']);
 
      //transaksi
-     Route::get('/user/transaksi',[App\http\Controllers\api\TransaksiController::class,'showByUser']);
+     Route::get('/transaksi',[App\http\Controllers\api\TransaksiController::class,'showByUser']);
 });

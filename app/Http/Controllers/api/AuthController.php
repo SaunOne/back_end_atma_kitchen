@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Mail\VerificationAccount;
 use App\Mail\VerifikasiEmail;
 use App\Models\User;
+use App\Models\Wallet;
+use App\Models\Point;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -14,7 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Facades\Password;
-
+use Illuminate\Support\Facades\DB;
 
 
 class AuthController extends Controller
@@ -40,7 +42,7 @@ class AuthController extends Controller
         if ($validate->fails()) {
             return response(
                 ["Message" => $validate->errors()->first(), 400]
-            );  
+            );
         }
 
         $data['password'] = bcrypt($request->password);
@@ -49,6 +51,17 @@ class AuthController extends Controller
         $data['verify_key'] = $str;
         $data['active'] = false;
         $user = User::create($data);
+
+        $data['id_user'] = $user->id_user;
+        $data['jumlah_saldo'] = 0;
+        $wallet = new Wallet;
+        $wallet->id_user = $user->id_user;
+        $wallet->jumlah_saldo = 0;
+        $wallet->save();
+        $point = new Point;
+        $point->id_user = $user['id_user'];
+        $point->jumlah_point = 0;
+        $point->save();
 
         $details = [
             'username' => $request->username,
@@ -73,12 +86,14 @@ class AuthController extends Controller
             ->where('verify_key', $verify_key)
             ->exists();
 
+
         if ($keyCheck) {
             $user = User::where('verify_key', $verify_key)
                 ->update([
                     'active' => 1,
                     'email_verified_at' => date('Y-m-d H:i:s'),
                 ]);
+
             return ([
                 'Message' => "Verifikasi berhasil. Akun anda sudah aktif.",
             ]);
@@ -102,11 +117,11 @@ class AuthController extends Controller
        
 
         $validate = Validator::make($loginData, [
-            'email' => 'required|email:rfc,dns',
+            'email' => '',
             'password' => 'required|min:8',
         ]);
 
-        
+
         if ($validate->fails()) {
             return response(['message' => $validate->errors()->first()], 400);
         }
@@ -126,7 +141,7 @@ class AuthController extends Controller
        
 
         $data = User::join('role', 'users.id_role', '=', 'role.id_role')
-            ->select('users.*', 'role.*')->where('users.id_user',$user->id_user)->first();
+            ->select('users.*', 'role.*')->where('users.id_user', $user->id_user)->first();
 
             
 
@@ -143,23 +158,31 @@ class AuthController extends Controller
     {
         $request->validate(['email' => 'required|email']);
 
+        $user = DB::table('users')->where('email', $request->only('email'))->first();
+
+        if (!$user) {
+            return response([
+                // "data" =>  $user->active,
+                "status-code" => 400,
+            ]);
+        }
+        if (!$user->active) {
+            return response([
+                "data" => !$user->active
+            ]);
+        }
+
         $status = Password::sendResetLink(
             $request->only('email')
         );
 
-        if ($status === Password::RESET_LINK_SENT) {
-            return response([
-                "message" => "Email Link successfully sent",
-                "status" => 200,
-                "data" => $request,
-            ]);
-        } else {
-            return response([
-                "message" => "Email Link Failed to send",
-                "status" => 400,
-                "data" => $request,
-            ]);
-        }
+
+        return response([
+            "message" => "Email Link Success to send",
+            "status-code" => $status,
+            "data" => $request,
+        ]);
+
 
         // return $status === Password::RESET_LINK_SENT
         //     ? back()->with(['status' => __($status)])

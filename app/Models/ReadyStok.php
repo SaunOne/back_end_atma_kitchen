@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class ReadyStok extends Model
 {
     protected $table = 'ready_stok';
-    protected $primaryKey = 'id_ready_stok';
+    protected $primaryKey = 'id_stok_produk';
     public $timestamps = false;
 
     protected $fillable = [
