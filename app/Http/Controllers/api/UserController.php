@@ -21,7 +21,7 @@ class UserController extends Controller
     public function showAll()
     {
 
-        $user = User::all();
+        $user = User::where('id_role',4)->get();
 
         return response()->json($user);
     }
