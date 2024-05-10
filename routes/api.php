@@ -122,7 +122,7 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
      Route::delete('/packaging/{id}', [App\Http\Controllers\api\PackagingController::class, 'destroy']);
 
      
-     
+     Route::post('/update-password/{id}', [App\Http\Controllers\api\AuthController::class, 'updatePassword']);
 
 
 
