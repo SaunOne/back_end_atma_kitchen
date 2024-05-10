@@ -21,23 +21,21 @@ class ProdukController extends Controller
 {
     public function showAll()
     {
-        $produks = Produk::join('ready_stok', 'ready_stok.id_stok_produk' , '=' , 'produk.id_stok_produk')->select('produk.*','ready_stok.*')->get();
+        $produks = Produk::join('ready_stok', 'ready_stok.id_stok_produk', '=', 'produk.id_stok_produk')->select('produk.*', 'ready_stok.*')->get();
 
         foreach ($produks as $produk) {
             if ($produk->jenis_produk == "Titipan") {
-                
             } else if ($produk->jenis_produk == "Hampers") {
                 $products = DB::table('detail_hampers as dh')
                     ->join('hampers as h', 'dh.id_hampers', '=', 'h.id_produk')
                     ->join('produk_utama as pu', 'pu.id_produk', '=', 'dh.id_produk')
                     ->join('produk as p', 'p.id_produk', '=', 'pu.id_produk')
-                    ->join('ready_stok as rs', 'rs.id_stok_produk' , '=', 'p.id_stok_produk')
-                    ->select('p.*','rs.*')
+                    ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'p.id_stok_produk')
+                    ->select('p.*', 'rs.*')
                     ->where('h.id_produk', '=', $produk->id_produk)
                     ->get();
                 $produk->produk = $products;
             } else if ($produk->jenis_produk == "Utama") {
-
             }
         }
 
@@ -87,102 +85,150 @@ class ProdukController extends Controller
         ]);
     }
 
-
-
     public function store(Request $request)
     {
         $data = $request->all();
 
-        if (!isset($data['id_produk'])) {
-            if ($data['jenis_produk'] == 'produk utama') {
-                $validate = Validator::make($data, [
-                    'id_packaging' => 'required',
-                    'katagorie_produk' => 'required',
-                ]);
-                if ($validate->fails()) {
-                    return response(['message' => $validate->errors()->first()], 400);
-                }
-            } else if ($data['jenis_produk'] == 'produk titipan') {
-                $validate = Validator::make($data, [
-                    'id_penitip' => 'required',
-                    'jumlah_produk_dititip' => 'required',
-                ]);
-                if ($validate->fails()) {
-                    return response(['message' => $validate->errors()->first()], 400);
-                }
-            } else if ($data['jenis_produk'] == 'hampers') {
-                $validate = Validator::make($data, [
-                    'id_packaging' => 'required',
-                    'limit_harian' => 'required',
-                    'detail_hampers' => 'required'
-                ]);
-                if ($validate->fails()) {
-                    return response(['message' => $validate->errors()->first()], 400);
-                }
-            }
-        }
         $validate = Validator::make($data, [
-            'nama_produk' => 'required',
-            'harga' => 'required',
-            'quantity' => 'required',
-            'deskripsi' => 'required',
+            // 'id_packaging' => 'required',
             'jenis_produk' => 'required',
+            
         ]);
 
-        if ($validate->fails()) {
-            return response(['message' => $validate->errors()->first()], 400);
+        //ketika membuat produk dengan stok baru
+        if(!isset($data['id_stok_produk'])){
+            $validate = Validator::make($data, [
+                'id_stok_produk' => 'required',
+                'satuan' => 'required',
+                'nama_produk_stok' => 'required',
+            ]);
+
+            if ($validate->fails()) {
+                return response(
+                    ["Message" => $validate->errors()->first(), 400]
+                );
+            }
+            //jumlah stoknya kita 0 dulu
+            $data['jumlah_stok'] = 0;
+            ReadyStok::create(([
+                $data
+            ]));
         }
 
-        if ($data['jenis_produk'] === 'produk titipan' && isset($data['id_produk'])) {
-            $data['id_stok_produk'] = Produk::where('id_produk', $data['id_produk'])->value('id_stok_produk');
-            $data['jumlah_stok'] = $data['jumlah_produk_dititip'];
-        }
-
-        $readyStok = ReadyStok::updateOrCreate(
-            ['id_stok_produk' => $data['id_stok_produk'] ?? null],
-            ['jumlah_stok' => DB::raw('jumlah_stok + ' . ($data['jumlah_stok'] ?? 0))]
-        );
-
-        if (!isset($data['id_stok_produk'])) {
-            // $readyStok['satuan'] = $data['satuan'];  
-            $readyStok['jumlah_stok'] = $data['jumlah_stok'];
-            $readyStok->save();
-            $data['id_stok_produk'] = $readyStok['id_stok_produk'];
-        }
-
-        $produk = Produk::updateOrCreate(
-            ['id_produk' => $data['id_produk'] ?? null],
-            $data
-        );
-
-        $data['id_produk'] = $produk['id_produk'];
-
-        switch ($data['jenis_produk']) {
-            case 'Utama':
-                app(ProdukUtamaController::class)->store(new Request($data));
-                break;
-            case 'Hampers':
+        //create produk dan ketika produk titipan
+        switch($data['jenis_produk']){
+            case 'Utama' :
                 
-                $data['DetailHampers']['id_hampers'] = $produk['id_produk'];
-                
-                app(HampersController::class)->store(new Request($data));
-                return response(['data' =>  $data]);
-                $this->handleDetailHampers($data);
                 break;
-            case 'Titipan':
-                app(ProdukTitipanController::class)->store(new Request($data));
+            case 'Titipan' :
+                break;
+            case 'Hampers' :
                 break;
         }
 
-        return response(['message' => 'Produk created successfully'], 200);
+
+        return response([
+            "message" => !isset($data['id_stok']),
+        ]);
+
     }
 
-    protected function handleDetailHampers($data)
-    {
-        foreach ($data['detail_hampers'] as $dH) {
-            app(DetailHampersController::class)->store(new Request(array_merge($dH, ["id_hampers" => $data["id_produk"]])));
-        }
-    }
+
+
+    // public function store(Request $request)
+    // {
+    //     $data = $request->all();
+
+    //     if (!isset($data['id_produk'])) {
+    //         if ($data['jenis_produk'] == 'produk utama') {
+    //             $validate = Validator::make($data, [
+    //                 'id_packaging' => 'required',
+    //                 'katagorie_produk' => 'required',
+    //             ]);
+    //             if ($validate->fails()) {
+    //                 return response(['message' => $validate->errors()->first()], 400);
+    //             }
+    //         } else if ($data['jenis_produk'] == 'produk titipan') {
+    //             $validate = Validator::make($data, [
+    //                 'id_penitip' => 'required',
+    //                 'jumlah_produk_dititip' => 'required',
+    //             ]);
+    //             if ($validate->fails()) {
+    //                 return response(['message' => $validate->errors()->first()], 400);
+    //             }
+    //         } else if ($data['jenis_produk'] == 'hampers') {
+    //             $validate = Validator::make($data, [
+    //                 'id_packaging' => 'required',
+    //                 'limit_harian' => 'required',
+    //                 'detail_hampers' => 'required'
+    //             ]);
+    //             if ($validate->fails()) {
+    //                 return response(['message' => $validate->errors()->first()], 400);
+    //             }
+    //         }
+    //     }
+    //     $validate = Validator::make($data, [
+    //         'nama_produk' => 'required',
+    //         'harga' => 'required',
+    //         'quantity' => 'required',
+    //         'deskripsi' => 'required',
+    //         'jenis_produk' => 'required',
+    //     ]);
+
+    //     if ($validate->fails()) {
+    //         return response(['message' => $validate->errors()->first()], 400);
+    //     }
+
+    //     if ($data['jenis_produk'] === 'produk titipan' && isset($data['id_produk'])) {
+    //         $data['id_stok_produk'] = Produk::where('id_produk', $data['id_produk'])->value('id_stok_produk');
+    //         $data['jumlah_stok'] = $data['jumlah_produk_dititip'];
+    //     }
+
+    //     $readyStok = ReadyStok::updateOrCreate(
+    //         ['id_stok_produk' => $data['id_stok_produk'] ?? null],
+    //         ['jumlah_stok' => DB::raw('jumlah_stok + ' . ($data['jumlah_stok'] ?? 0))]
+    //     );
+
+    //     if (!isset($data['id_stok_produk'])) {
+    //         // $readyStok['satuan'] = $data['satuan'];  
+    //         $readyStok['jumlah_stok'] = $data['jumlah_stok'];
+    //         $readyStok->save();
+    //         $data['id_stok_produk'] = $readyStok['id_stok_produk'];
+    //     }
+
+    //     $produk = Produk::updateOrCreate(
+    //         ['id_produk' => $data['id_produk'] ?? null],
+    //         $data
+    //     );
+
+    //     $data['id_produk'] = $produk['id_produk'];
+
+    //     switch ($data['jenis_produk']) {
+    //         case 'Utama':
+    //             app(ProdukUtamaController::class)->store(new Request($data));
+    //             break;
+    //         case 'Hampers':
+
+    //             $data['DetailHampers']['id_produk'] = $produk['id_produk'];
+
+    //             $data = Hampers::create($data['DetailHampers']);
+    //             return response(['data' =>  $data['DetailHampers']]);
+    //             $this->handleDetailHampers($data);
+    //             break;
+    //         case 'Titipan':
+    //             app(ProdukTitipanController::class)->store(new Request($data));
+    //             break;
+    //     }
+
+    //     return response(['message' => 'Produk created successfully'], 200);
+    // }
+
+    // protected function handleDetailHampers($data)
+    // {
+    //     foreach ($data['detail_hampers'] as $dH) {
+    //         app(DetailHampersController::class)->store(new Request(array_merge($dH, ["id_hampers" => $data["id_produk"]])));
+    //     }
+    // }
 
     public function update(Request $request, $id)
     {
