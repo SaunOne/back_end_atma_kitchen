@@ -37,7 +37,7 @@ Route::middleware(['auth:api'])->group(function () {
      Route::delete('/karyawan/{id}', [App\Http\Controllers\api\PegawaiController::class, 'destroy']);
 
      //mengubah data gaji dan bonus
-     Route::put('/karyawan/update_gaji_bonus/{id}', [App\Http\Controllers\api\PegawaiController::class, 'updateGajiBonus']);
+     Route::post('/karyawan/update_gaji_bonus/{id}', [App\Http\Controllers\api\PegawaiController::class, 'updateGajiBonus']);
 
      //pembelian bahan
      Route::get('/pembelian-bahan', [App\Http\Controllers\api\PembelianBahanController::class, 'showAll']);
