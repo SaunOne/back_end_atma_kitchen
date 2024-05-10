@@ -224,7 +224,7 @@ class AuthController extends Controller
         //     : back()->withErrors(['email' => [__($status)]]);
     }
 
-    public function updatePassword($newPassword, $id)
+    public function updatePassword(Request $request, $id)
     {
         $user = User::find($id);
         if ($user['id_role'] === 4) {
@@ -233,8 +233,8 @@ class AuthController extends Controller
                 "status" => 405
             ]);
         }
-
-        $user->password = Hash::make($newPassword);
+        $data = $request->all();
+        $user->password = Hash::make($data['password']);
         $user->save();
 
         return response([
