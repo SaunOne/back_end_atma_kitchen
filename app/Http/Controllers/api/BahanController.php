@@ -66,7 +66,6 @@ class BahanController extends Controller
 
         $validate = Validator::make($data, [
             'nama_bahan' => 'required',
-            // 'stok_bahan' => 'required',
             'satuan' => 'required',
         ]);
 

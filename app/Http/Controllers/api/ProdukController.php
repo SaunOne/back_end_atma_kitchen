@@ -47,6 +47,8 @@ class ProdukController extends Controller
         ], 200);
     }
 
+    
+
     public function showById($id)
     {
 

@@ -11,7 +11,9 @@ class ProdukUtamaController extends Controller
 {
     public function showAll()
     {
-        $produkUtamas = ProdukUtama::all();
+        $produkUtamas = ProdukUtama::select('produk.*','produk_utama.*')
+        ->join('produk.*','produk_utama.*')
+        ->all();
 
         return response([
             'message' => 'All Produk Utama Retrieved',

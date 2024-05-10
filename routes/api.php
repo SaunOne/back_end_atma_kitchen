@@ -16,9 +16,6 @@ Route::post('/forgot-password', [App\Http\Controllers\Api\AuthController::class,
 Route::post('/reset-password', [App\Http\Controllers\Api\AuthController::class, 'resetPassword'])->middleware('guest')->name('password.update');
 
 
-
-//test
-
 Route::get('/test', [App\Http\Controllers\Api\UserController::class, 'test']);
 
 Route::middleware(['auth:api', 'owner'])->group(function () {
@@ -67,6 +64,9 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
      Route::post('/produk', [App\Http\Controllers\api\ProdukController::class, 'store']);
      Route::put('/produk', [App\Http\Controllers\api\ProdukController::class, 'searchProduk']);
      Route::delete('/produk', [App\Http\Controllers\api\ProdukController::class, 'destroy']);
+
+     //produk-utama
+     Route::get('/produk-utama', [App\Http\Controllers\api\ProdukUtamaController::class, 'showAll']);
 
      //resep
      Route::get('/resep', [App\Http\Controllers\api\ResepController::class, 'showAll']);
