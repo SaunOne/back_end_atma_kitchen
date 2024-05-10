@@ -168,7 +168,7 @@ class PegawaiController extends Controller
     public function updateGajiBonus(Request $request,$id){
         $pegawai = Pegawai::find($id);
 
-        if (!$pegawai) {
+        if (!$pegawai) {    
             return response(['message' => 'Pegawai not found'], 404);
         }
 

@@ -55,8 +55,8 @@ class ProdukController extends Controller
 
     public function showById($id)
     {
-
-        $produk = Produk::where($id);
+        
+        $produk = Produk::find($id)->first();
 
         if (!$produk) {
             return response(['message' => 'Produk not found'], 404);
@@ -67,6 +67,8 @@ class ProdukController extends Controller
             'data' => $produk
         ], 200);
     }
+
+    
 
     public function searchProduk($search)
     {
