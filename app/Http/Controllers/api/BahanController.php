@@ -39,7 +39,7 @@ class BahanController extends Controller
 
         $validate = Validator::make($data, [
             'nama_bahan' => 'required',
-            'stok_bahan' => 'required',
+            'stok_bahan' => 'nullable',
             'satuan' => 'required',
         ]);
 
@@ -47,7 +47,12 @@ class BahanController extends Controller
             return response(['message' => $validate->errors()->first()], 400);
         }
 
-        $bahan = Bahan::create($data);
+        
+        $bahan = Bahan::create([
+            'nama_bahan' => $data['nama_bahan'],
+            'stok_bahan' => 0,
+            'satuan' => $data['satuan'],
+        ]);
 
         return response([
             'message' => 'Bahan created successfully',
@@ -67,7 +72,7 @@ class BahanController extends Controller
 
         $validate = Validator::make($data, [
             'nama_bahan' => 'required',
-            'stok_bahan' => 'required',
+            'stok_bahan' => 'nullable',
             'satuan' => 'required',
         ]);
 
