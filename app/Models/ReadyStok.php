@@ -14,5 +14,6 @@ class ReadyStok extends Model
     protected $fillable = [
         'jumlah_stok',
         'satuan',
+        'nama_produk_stok'
     ];
 }
