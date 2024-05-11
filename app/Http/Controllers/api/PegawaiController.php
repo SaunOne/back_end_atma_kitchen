@@ -195,12 +195,15 @@ class PegawaiController extends Controller
     {
 
         
-        $pegawai = Pegawai::where('id_user',$id)->first();
-        return response($pegawai, 200);
+        $pegawai = Pegawai::find($id);
+        
         if (!$pegawai) {
             return response(['message' => 'Pegawai not found'], 404);
         }
 
+        return response([
+            'message' => $pegawai
+        ]);
         $pegawai->delete();
 
         return response(['message' => 'Pegawai deleted successfully'], 200);
