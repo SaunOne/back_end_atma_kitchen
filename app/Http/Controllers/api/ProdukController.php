@@ -329,8 +329,10 @@ class ProdukController extends Controller
 
     public function update(Request $request, $id)
     {
-        $produk = Produk::find($id);
 
+       
+        $produk = Produk::where('id_produk',$id)->first();
+        return response($request); 
         if (!$produk) {
             return response(['message' => 'Produk not found'], 404);
         }
@@ -342,7 +344,7 @@ class ProdukController extends Controller
             'harga' => 'required',
             'quantity' => 'required',
             'deskripsi' => 'required',
-            'jenis_produk' => 'required'
+            'jenis_produk' => 'required',
         ]);
 
         if ($validate->fails()) {
