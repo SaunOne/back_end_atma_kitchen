@@ -201,9 +201,7 @@ class PegawaiController extends Controller
             return response(['message' => 'Pegawai not found'], 404);
         }
 
-        return response([
-            'message' => $pegawai
-        ]);
+
         $pegawai->delete();
 
         return response(['message' => 'Pegawai deleted successfully'], 200);

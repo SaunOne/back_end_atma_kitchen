@@ -68,6 +68,19 @@ class ProdukController extends Controller
         ], 200);
     }
 
+    
+    public function showHampersById($id)
+    {
+        $produks = Produk::join('hampers', 'hampers.id_produk', '=', 'produk.id_produk')-> 
+        join('detail_hampers', 'detail_hampers.id_hampers', '=', 'hampers.id_produk')->
+        select('produk.*', 'detail_hampers.*', 'hampers.*')->where('produk.id_produk', $id)->get();
+        return resesponse([
+            'data' => $produks
+        ], 200);
+
+    }
+    
+
     // public function showByIdAll($id)
     // {
 
