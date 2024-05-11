@@ -27,7 +27,10 @@ class PegawaiController extends Controller
 
     public function showById($id)
     {
-        $pegawai = Pegawai::find($id);
+        $pegawai = Pegawai::select()
+        ->join('users','users.id_user','pegawai.id_user')
+        ->where('pegawai.id_user',$id)
+        ->first();
 
         if (!$pegawai) {
             return response(['message' => 'Pegawai not found'], 404);
