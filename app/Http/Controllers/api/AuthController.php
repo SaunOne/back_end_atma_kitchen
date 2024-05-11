@@ -41,7 +41,7 @@ class AuthController extends Controller
 
         if ($validate->fails()) {
             return response(
-                ["Message" => $validate->errors()->first(), 400]
+                ["Message" => $validate->errors()->first(),"status" => 400]
             );
         }
 
@@ -76,6 +76,7 @@ class AuthController extends Controller
             'message' => 'Register Success',
             'data' => $user,
             'random' => $data['verify_key'],
+            "status" => 200,
             'url' => request()->getHttpHost() . '/api/verify/' . $str,
         ], 200);
     }
