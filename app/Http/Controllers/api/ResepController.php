@@ -16,7 +16,7 @@ class ResepController extends Controller
 
         foreach ($products as $product) {
             $product->resep = Resep::select('resep.*', 'bahan.*',)
-                ->join('bahan', 'bahan.id_bahan', 'resep.id_resep')
+                ->join('bahan', 'bahan.id_bahan', 'resep.id_bahan')
                 ->where('resep.id_produk',$product->id_produk)
                 ->get();
         }
@@ -82,12 +82,14 @@ class ResepController extends Controller
         ], 200);
     }
 
+    
+
     public function storeAll(Request $request)
     {
         $data = $request->all();
 
         $validate = Validator::make($data, [
-            'reseps' => 'required',
+            'resep' => 'required',
         ]);
 
         if ($validate->fails()) {
@@ -95,7 +97,7 @@ class ResepController extends Controller
         }
 
 
-        foreach ($data['reseps'] as $r) {
+        foreach ($data['resep'] as $r) {
             Resep::create($r);
         }
 

@@ -226,10 +226,61 @@ class ProdukController extends Controller
                     $validate = Validator::make($data, [
                         'id_produk' => 'required',
                     ]);
+
+                    $produk = Produk::where('id_produk', $data['id_produk'])->first();
+                    $temp = ProdukTitipan::select('id_penitip')->where('id_produk', $data['id_produk'])->first();
+                    $data['id_penitip'] = $temp->id_penitip;
+                    $data['id_stok_produk'] = $produk->id_stok_produk;
+
+                    $readyStok = ReadyStok::where('id_stok_produk', $data['id_stok_produk'])->first();
+                    $readyStok->jumlah_stok += $data['jumlah_produk_dititip'];
+                    $readyStok->save();
+                    $data['tanggal'] = now();
+                    $produk_titipan = ProdukTitipan::create($data);
+                    $produk_titipan->id_penitip = $data['id_penitip'];
+
+                    return response([
+                        "message" => "Berhasil Add Produk Titipan",
+                        "data produk" =>   $produk,
+                        "data produk_titipan " => $produk_titipan,
+                        "raady_stok" => $readyStok,
+                        "data" => $data
+                    ]);
                 }
 
                 break;
+            case "Hampers":
 
+                $validate = Validator::make($data, [
+                    // 'id_stok_produk' => 'required',
+                    'satuan' => 'required',
+                ]);
+                $readyStok = ReadyStok::create($data);
+                $data['id_stok_produk'] = $readyStok->id_stok_produk;
+
+                $produk = Produk::create($data);
+
+                $data['id_produk'] = $produk->id_produk;
+
+                $hampers = new Hampers;
+                $hampers->id_packaging = $data['id_packaging'];
+                $hampers->id_produk = $data['id_produk'];
+                $hampers->limit_harian = 5;
+                $hampers->save();
+
+                foreach ($data['detail_hampers'] as $dh) {
+                    $dh['id_hampers'] = $data['id_produk'];
+                    DetailHampers::create($dh);
+                }
+                return response([
+                    "message" => "Berhasil Add Produk Titipan",
+                    "data produk" =>   $produk,
+                    "data hampers " => $hampers,
+                    "raady_stok" => $readyStok,
+                    "data" => $data
+                ]);
+
+                break;
 
 
                 //         //kalo engga ada
