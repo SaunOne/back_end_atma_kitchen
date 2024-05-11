@@ -56,7 +56,7 @@ class ProdukController extends Controller
     public function showById($id)
     {
 
-        $produk = Produk::find($id)->first();
+        $produk = Produk::where('id_produk', $id)->first();
 
         if (!$produk) {
             return response(['message' => 'Produk not found'], 404);
@@ -106,80 +106,11 @@ class ProdukController extends Controller
         ]);
     }
 
-    public function store(Request $request){
-        
-    }
-
     public function store(Request $request)
     {
 
-
         $data = $request->all();
-
         $data['limit_harian'] = 5;
-
-        $validate = Validator::make($data, [
-            'id_packaging' => 'required',
-            'jenis_produk' => 'required',
-
-        ]);
-
-        if ($data['jenis_produk'] == 'Hampers') {
-
-            $data['jumlah_stok'] = 0;
-            $readyStok = ReadyStok::create($data);
-            $data['id_stok_produk'] = $readyStok->id_stok_produk;
-            //create produk
-            $produk = Produk::create($data);
-            $data['id_produk'] = $produk['id_produk'];
-
-            $hamper = new Hampers;
-            $hamper->id_packaging = $data['id_packaging'];
-            $hamper->id_produk = $data['id_produk'];
-            $hamper->limit_harian = 5;
-            $hamper->save();
-
-            foreach ($data['detail_hampers'] as $dh) {
-                $dh['id_hampers'] = $data['id_produk'];
-                DetailHampers::create($dh);
-            }
-        }
-
-        //Penitip Lama
-        if (!isset($data['id_penitip']) && ($data['jenis_produk'] == 'Titipan')) {
-
-            $produk = Produk::select('id_stok_produk')->find($data['id_produk'])->first();
-            $data['id_stok_produk'] = $produk->id_stok_produk;
-        }
-
-        //Penitip Baru
-        if (isset($data['id_penitip']) && ($data['jenis_produk'] == 'Titipan')) {
-            $data['nama_produk_stok'] = $data['nama_produk'];
-        }
-
-
-
-
-        //ketika membuat produk dengan stok baru
-        if (!isset($data['id_stok_produk'])) {
-
-            $validate = Validator::make($data, [
-                // 'id_stok_produk' => 'required',
-                'satuan' => 'required',
-                'nama_produk_stok' => 'required',
-            ]);
-
-            if ($validate->fails()) {
-                return response(
-                    ["Message" => $validate->errors()->first(), 400]
-                );
-            }
-            //jumlah stoknya kita 0 dulu
-            $data['jumlah_stok'] = 0;
-            $readyStok = ReadyStok::create($data);
-
-            $data['id_stok_produk'] = $readyStok->id_stok_produk;
-        }
 
         if ($request->hasFile('image_produk')) {
             $uploadFolder = 'images';
@@ -202,63 +133,170 @@ class ProdukController extends Controller
             $data['image_produk'] = 'images/' . $uploadedImageResponse;
         }
 
-        //kalo engga ada
-        if (!isset($data['id_produk']) && isset($data['jenis_produk']) == 'Utama') {
-            //ini create produk baru
-
-            $produk = Produk::create($data);
-            $data['id_produk'] = $produk['id_produk'];
-            $data['id_ready_stok'] = $produk->id_stok_produk;
-        } else {
-            //kalo id produknya ada
-            // return (["message" => "success update", "data" => $data]);
-
-            $produk = Produk::find($data['id_produk'])->first();
-            $produk->update($data);
-            $data['id_stok_produk'] = $produk->id_stok_produk;
-        }
-
-        //create produk dan ketika produk titipan
         switch ($data['jenis_produk']) {
+
+                //PEMBEDAN ANTARA LAMA DAN BARU ITU ID_STOK_PRODUK
             case 'Utama':
+
                 $validate = Validator::make($data, [
-                    'id_stok_produk' => 'required',
-                    // 'satuan' => 'required',
-                    // 'nama_produk_stok' => 'required',
-                ]);
-                ProdukUtama::create($data);
-                break;
-            case 'Titipan':
-                $validate = Validator::make($data, [
-                    'id_penitip' => 'required',
-                    'nama_produk' => 'required',
-                    'jumlah_produk_dititip' => 'required',
-                    'harga' => 'required',
-                    'image_produk' => 'required'
+                    'id_packaging' => 'required',
+                    'jenis_produk' => 'required',
                 ]);
 
-                //ketika produk lama
-                // return (["response " => $data]);
-                DB::table('ready_stok')
-                    ->where('id_stok_produk', $data['id_stok_produk'])
-                    ->increment('jumlah_stok', $data['jumlah_produk_dititip']);
+                //kalo dai gak punya id_stok_produk berarti produk utama baru
+                if (!isset($data['id_stok_produk'])) {
 
+                    $validate = Validator::make($data, [
+                        // 'id_stok_produk' => 'required',
+                        'satuan' => 'required',
+                        'nama_produk_stok' => 'required',
+                    ]);
 
-                $data['tanggal'] = now();
+                    if ($validate->fails()) {
+                        return response(
+                            ["Message" => $validate->errors()->first(), 400]
+                        );
+                    }
+                    //jumlah stoknya kita 0 dulu
+                    $data['jumlah_stok'] = 0;
+                    $readyStok = ReadyStok::create($data);
 
-                $produkTitipan = ProdukTitipan::create($data);
-                return (["message" => "success create titipan", "data" => $data]);
+                    $data['id_stok_produk'] = $readyStok->id_stok_produk;
+                    $produk = Produk::create($data);
+                    $data['id_produk'] = $produk['id_produk'];
+                    $produk_utama = ProdukUtama::create($data);
+                    $produk_utama->id_produk = $data['id_produk'];
+                    $produk->save();
+                    return response([
+                        "message" => "Berhasil Add Produk Utama",
+                        "data produk" =>   $produk,
+                        "data produk_utama " => $produk_utama,
+                        "raady_stok" => $readyStok,
+                        "data" => $data
+                    ]);
+                } else {
+                    $readyStok = ReadyStok::where('id_stok_produk', $data['id_stok_produk']);
+                    $produk = Produk::create($data);
+                    $data['id_produk'] = $produk['id_produk'];
+                    $produk_utama = ProdukUtama::create($data);
+                    $produk_utama->id_produk = $data['id_produk'];
+                    $produk->save();
+                    return response([
+                        "message" => "Berhasil Add Produk Utama",
+                        "data produk" =>   $produk,
+                        "data produk_utama " => $produk_utama,
+                        "raady_stok" => $readyStok,
+                        "data" => $data
+                    ]);
+                }
                 break;
-            case 'Hampers':
+            case "Titipan":
+                if (!isset($data['id_produk'])) {
+                    $validate = Validator::make($data, [
+                        // 'id_stok_produk' => 'required',
+                        'satuan' => 'required',
+                    ]);
+
+                    if ($validate->fails()) {
+                        return response(
+                            ["Message" => $validate->errors()->first(), 400]
+                        );
+                    }
+                    //jumlah stoknya kita 0 dulu
+                    $data['jumlah_stok'] = 0;
+                    $data['nama_produk_stok'] = $data['nama_produk'];
+                    $readyStok = ReadyStok::create($data);
+                    $data['id_stok_produk'] = $readyStok->id_stok_produk;
+                    $readyStok->jumlah_stok = $data['jumlah_produk_dititip'];
+                    $readyStok->save();
+                    $produk = Produk::create($data);
+                    $data['id_produk'] = $produk['id_produk'];
+
+                    $produk_titipan = ProdukTitipan::create($data);
+
+                    return response([
+                        "message" => "Berhasil Add Produk Titipan",
+                        "data produk" =>   $produk,
+                        "data produk_titipan " => $produk_titipan,
+                        "raady_stok" => $readyStok,
+                        "data" => $data
+                    ]);
+                } else {
+                    //kalo tiitpan lama  ada id produk
+                    $validate = Validator::make($data, [
+                        'id_produk' => 'required',
+                    ]);
+                }
 
                 break;
+
+
+
+                //         //kalo engga ada
+                //         if (!isset($data['id_produk'])) {
+                //             //ini create produk baru
+
+                //         else{
+                //             //kalo id produknya ada
+                //             // return (["message" => "success update", "data" => $data]);
+                //             $produk = Produk::find($data['id_produk'])->first();
+                //             $produk->update($data);
+                //             $data['id_stok_produk'] = $produk->id_stok_produk;
+                //         }
+
+                //         DB::table('ready_stok')
+                //             ->where('id_stok_produk', $data['id_stok_produk'])
+                //             ->increment('jumlah_stok', $data['jumlah_produk_dititip']);
+
+
+                //         $data['tanggal'] = now();
+
+                //         $produkTitipan = ProdukTitipan::create($data);
+                //         return (["message" => "success create titipan", "data" => $data]);
+
+
+                //         break;
+                //     case 'Titipan':
+                //         $validate = Validator::make($data, [
+                //             // 'id_packaging' => 'required',
+                //             'jenis_produk' => 'required',
+
+                //         ]);
+
+                //         if (!isset($data['id_penitip'])) {
+                //             $produk = Produk::select('id_stok_produk')->find($data['id_produk'])->first();
+                //             $data['id_stok_produk'] = $produk->id_stok_produk;
+                //         }
+
+
+
+                //         break;
+                //     case 'Hampers':
+                //         $validate = Validator::make($data, [
+                //             'id_packaging' => 'required',
+                //             'jenis_produk' => 'required',
+
+                //         ]);
+
+                //         $data['jumlah_stok'] = 0;
+                //         $readyStok = ReadyStok::create($data);
+                //         $data['id_stok_produk'] = $readyStok->id_stok_produk;
+                //         //create produk
+                //         $produk = Produk::create($data);
+                //         $data['id_produk'] = $produk['id_produk'];
+
+                //         $hamper = new Hampers;
+                //         $hamper->id_packaging = $data['id_packaging'];
+                //         $hamper->id_produk = $data['id_produk'];
+                //         $hamper->limit_harian = 5;
+                //         $hamper->save();
+
+                //         foreach ($data['detail_hampers'] as $dh) {
+                //             $dh['id_hampers'] = $data['id_produk'];
+                //             DetailHampers::create($dh);
+                //         }
+                //         break;
         }
-
-
-        return response([
-            "message" => "Succes Add product Utama",
-            "data" => $data
-        ]);
     }
 
 
