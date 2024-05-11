@@ -20,10 +20,11 @@ class UserController extends Controller
 {
     public function showAll()
     {
+        $users = User::where('id_role', 4)->get();
 
         $user = User::where('id_role',4)->get();
 
-        return response()->json($user);
+        return response()->json($users);
     }
 
     public function getProfile()

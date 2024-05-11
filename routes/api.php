@@ -121,6 +121,7 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
      Route::put('/packaging/{id}', [App\Http\Controllers\api\PackagingController::class, 'update']);
      Route::delete('/packaging/{id}', [App\Http\Controllers\api\PackagingController::class, 'destroy']);
 
+     Route::get('/customers', [App\Http\Controllers\api\UserController::class, 'showAll']);
      
      Route::post('/update-password', [App\Http\Controllers\api\AuthController::class, 'updatePassword']);
 

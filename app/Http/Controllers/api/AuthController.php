@@ -113,6 +113,8 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $loginData = $request->all();
+        
+       
 
         $validate = Validator::make($loginData, [
             'email' => '',
@@ -127,12 +129,21 @@ class AuthController extends Controller
         if (!Auth::attempt($loginData)) {
             return response(['message' => 'Invalid email & password  match'], 401);
         }
+        
+        
         /** @var \App\Models\User $user  **/
         $user = Auth::user();
+
+        
         $result = $user->createToken('Authentication Token')->accessToken;
+
+       
+       
 
         $data = User::join('role', 'users.id_role', '=', 'role.id_role')
             ->select('users.*', 'role.*')->where('users.id_user', $user->id_user)->first();
+
+            
 
         return response([
             'message' => 'Authenticated',
