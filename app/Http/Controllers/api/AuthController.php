@@ -151,7 +151,7 @@ class AuthController extends Controller
             'data' => $data,
             'token_type' => 'Bearer',
             'access_token' => $result
-        ]);
+        ],200);
     }
 
 

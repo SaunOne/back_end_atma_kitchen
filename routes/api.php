@@ -83,6 +83,13 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
      Route::put('/bahan/{id}', [App\Http\Controllers\api\BahanController::class, 'update']);
      Route::delete('/bahan/{id}', [App\Http\Controllers\api\BahanController::class, 'destroy']);
 
+     //kelola transaksi
+     Route::get('/transaksi/all', [App\Http\Controllers\api\TransaksiController::class, 'showAll']);
+     Route::get('/transaksi/{id}', [App\Http\Controllers\api\TransaksiController::class, 'showById']);
+     Route::post('/transaksi', [App\Http\Controllers\api\TransaksiController::class, 'store']);
+     Route::put('/transaksi/{id}', [App\Http\Controllers\api\TransaksiController::class, 'update']);
+     Route::delete('/transaksi/{id}', [App\Http\Controllers\api\TransaksiController::class, 'destroy']);
+
      //kelola hampers
      Route::get('/hampers', [App\Http\Controllers\api\HampersController::class, 'showAll']);
      Route::get('/hampers/{id}', [App\Http\Controllers\api\HampersController::class, 'showById']);
