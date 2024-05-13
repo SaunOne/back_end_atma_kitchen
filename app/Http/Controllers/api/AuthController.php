@@ -67,7 +67,7 @@ class AuthController extends Controller
             'username' => $request->username,
             'website' => 'Atma Kitchen',
             'datetime' => now(),
-            'url' => request()->getHttpHost()  . '/api/verify/' . $str,
+            'url' => "request()->getHttpHost()  . '/api/verify/' . $str",
         ];
 
         Mail::to($request->email)->send(new VerificationAccount($details));
