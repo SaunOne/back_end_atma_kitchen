@@ -15,7 +15,18 @@ class TransaksiController extends Controller
 {
     public function showAll()
     {
-        $transaksis = Transaksi::select();
+        $transaksis = Transaksi::select('transaksi.*','users.name_lengkap')
+        ->join('users', 'users.id_user', 'transaksi.id_user')
+        ->where('transaksi.id_user')->get();
+        foreach ($transaksis as $transaksi) {
+            $detail_transaksis = DetailTransaksi::where('id_transaksi', $transaksi->id_transaksi)->get();
+            $transaksi->detail_transaksi = $detail_transaksis;
+            $transaksi->alamat = Alamat::where('id_alamat',$transaksi->id_alamat)->first();
+            foreach ($detail_transaksis as $detail_transaksi){
+                $products = Produk::where('id_produk',$detail_transaksi->id_produk)->first();
+                $detail_transaksi->produk = $products;
+            }
+        }
 
         return response([
             'message' => 'All Transaksis Retrieved',
@@ -26,8 +37,8 @@ class TransaksiController extends Controller
     public function showByUser()
     {
         $id_user =  Auth::user()->id_user;
-        $transaksis = Transaksi::select('transaksi.*','u.name_lengkap')
-        ->join('users', 'users.user_id', 'transaksi.user_id')
+        $transaksis = Transaksi::select('transaksi.*','users.name_lengkap')
+        ->join('users', 'users.id_user', 'transaksi.id_user')
         ->where('transaksi.id_user', $id_user)->get();
         foreach ($transaksis as $transaksi) {
             $detail_transaksis = DetailTransaksi::where('id_transaksi', $transaksi->id_transaksi)->get();
