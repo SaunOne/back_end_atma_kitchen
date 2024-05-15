@@ -68,6 +68,19 @@ class ProdukController extends Controller
         ], 200);
     }
 
+    
+    public function showHampersById($id)
+    {
+        $produks = Produk::join('hampers', 'hampers.id_produk', '=', 'produk.id_produk')-> 
+        join('detail_hampers', 'detail_hampers.id_hampers', '=', 'hampers.id_produk')->
+        select('produk.*', 'detail_hampers.*', 'hampers.*')->where('produk.id_produk', $id)->get();
+        return resesponse([
+            'data' => $produks
+        ], 200);
+
+    }
+    
+
     // public function showByIdAll($id)
     // {
 
@@ -449,20 +462,44 @@ class ProdukController extends Controller
 
     public function update(Request $request, $id)
     {
-        $produk = Produk::find($id);
-
+        $produk = Produk::where('id_produk',$id)->first();
+        
         if (!$produk) {
             return response(['message' => 'Produk not found'], 404);
         }
 
         $data = $request->all();
+        
+        if ($request->hasFile('image_produk')) {
+            $uploadFolder = 'images';
+            $image = $request->file('image_produk');
+
+            if ($data['image_produk']) {
+                Storage::disk('public')->delete($data['image_produk']);
+            }
+            // Generate nama file acak dengan 12 karakter
+            $randomFileName = Str::random(12);
+            // Dapatkan ekstensi file asli
+            $extension = $image->getClientOriginalExtension();
+            // Gabungkan nama file acak dengan ekstensi
+            $fileNameToStore = $randomFileName . '.' . $extension;
+            // Simpan gambar
+            $image_uploaded_path = $image->storeAs($uploadFolder, $fileNameToStore, 'public');
+            // Mendapatkan nama file yang diunggah
+            $uploadedImageResponse = basename($image_uploaded_path);
+            // Set data foto profile baru
+            $data['image_produk'] = 'images/' . $uploadedImageResponse;
+        }
+
+        
+        
 
         $validate = Validator::make($data, [
             'nama_produk' => 'required',
             'harga' => 'required',
             'quantity' => 'required',
             'deskripsi' => 'required',
-            'jenis_produk' => 'required'
+            'jenis_produk' => 'required',
         ]);
 
         if ($validate->fails()) {

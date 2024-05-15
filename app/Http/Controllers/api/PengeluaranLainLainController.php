@@ -39,10 +39,10 @@ class PengeluaranLainLainController extends Controller
 
         $validate = Validator::make($data, [
             'nama_pengeluaran' => 'required',
-            'tanggal' => 'required',
             'jumlah_pengeluaran' => 'required'
         ]);
-
+        
+        $data['tanggal'] = now();
         if ($validate->fails()) {
             return response(['message' => $validate->errors()->first()], 400);
         }
@@ -67,9 +67,9 @@ class PengeluaranLainLainController extends Controller
 
         $validate = Validator::make($data, [
             'nama_pengeluaran' => 'required',
-            'tanggal' => 'required',
             'jumlah_pengeluaran' => 'required'
         ]);
+        $data['tanggal'] = now();
 
         if ($validate->fails()) {
             return response(['message' => $validate->errors()->first()], 400);

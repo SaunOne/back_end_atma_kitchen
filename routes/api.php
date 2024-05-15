@@ -59,9 +59,10 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
      //Produk
 
      Route::get('/produk/searchAll/{id}', [App\Http\Controllers\api\ProdukController::class, 'searchProduk']);
+     Route::get('/produk/hampers/{id}', [App\Http\Controllers\api\ProdukController::class, 'showHampersById']);
      Route::post('/produk', [App\Http\Controllers\api\ProdukController::class, 'store']);
-     Route::put('/produk', [App\Http\Controllers\api\ProdukController::class, 'searchProduk']);
-     Route::delete('/produk', [App\Http\Controllers\api\ProdukController::class, 'destroy']);
+     Route::post('/produk/{id}', [App\Http\Controllers\api\ProdukController::class, 'update']);
+     Route::delete('/produk/{id}', [App\Http\Controllers\api\ProdukController::class, 'destroy']);
 
      //produk-utama
      Route::get('/produk-utama', [App\Http\Controllers\api\ProdukUtamaController::class, 'showAll']);
@@ -140,4 +141,3 @@ Route::middleware(['auth:api', 'customer'])->group(function () {
      //transaksi
      Route::get('/transaksi', [App\http\Controllers\api\TransaksiController::class, 'showByUser']);
 });
-
