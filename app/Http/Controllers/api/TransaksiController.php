@@ -16,7 +16,8 @@ class TransaksiController extends Controller
     public function showAll()
     {
         $transaksis = Transaksi::select('transaksi.*','users.nama_lengkap')
-        ->join('users', 'users.id_user', 'transaksi.id_user')->get();
+        ->join('users', 'users.id_user', 'transaksi.id_user')
+        ->get();
         foreach ($transaksis as $transaksi) {
             $detail_transaksis = DetailTransaksi::where('id_transaksi', $transaksi->id_transaksi)->get();
             $transaksi->detail_transaksi = $detail_transaksis;
