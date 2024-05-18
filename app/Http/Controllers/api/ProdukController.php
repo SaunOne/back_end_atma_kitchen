@@ -26,9 +26,7 @@ class ProdukController extends Controller
     public function showAll()
     {
         $produks = Produk::join('ready_stok', 'ready_stok.id_stok_produk', '=', 'produk.id_stok_produk')->select('produk.*', 'ready_stok.*')->get();
-
-
-
+         
         foreach ($produks as $produk) {
             if ($produk->jenis_produk == "Titipan") {
             } else if ($produk->jenis_produk == "Hampers") {

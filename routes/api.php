@@ -126,6 +126,14 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
      Route::put('/packaging/{id}', [App\Http\Controllers\api\PackagingController::class, 'update']);
      Route::delete('/packaging/{id}', [App\Http\Controllers\api\PackagingController::class, 'destroy']);
 
+     //alamat
+     Route::get('/alamat', [App\Http\Controllers\api\AlamatController::class, 'showAll']);
+     Route::get('/alamat/{id}', [App\Http\Controllers\api\AlamatController::class, 'showById']);
+     Route::get('/alamat-user', [App\Http\Controllers\api\AlamatController::class, 'showByUser']);
+     Route::post('/alamat', [App\Http\Controllers\api\AlamatController::class, 'store']);
+     Route::put('/alamat/{id}', [App\Http\Controllers\api\AlamatController::class, 'update']);
+     Route::delete('/alamat/{id}', [App\Http\Controllers\api\AlamatController::class, 'destroy']);
+
 
      Route::post('/update-password', [App\Http\Controllers\api\AuthController::class, 'updatePassword']);
 });
