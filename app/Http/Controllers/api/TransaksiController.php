@@ -73,20 +73,18 @@ class TransaksiController extends Controller
     {
         $data = $request->all();
 
+        //cek validasi data yang diperlukan 
         $validate = Validator::make($data, [
-            // add validation rules for your fields
+            'detail_transaksi' => 'required',
+            
         ]);
 
         if ($validate->fails()) {
             return response(['message' => $validate->errors()->first()], 400);
-        }
+        };
 
-        $transaksi = Transaksi::create($data);
-
-        return response([
-            'message' => 'Transaksi created successfully',
-            'data' => $transaksi
-        ], 200);
+        
+        
     }
 
     public function update(Request $request, $id)
