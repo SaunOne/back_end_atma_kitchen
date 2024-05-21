@@ -147,3 +147,7 @@ Route::middleware(['auth:api', 'customer'])->group(function () {
      //transaksi
      Route::get('/transaksi', [App\http\Controllers\api\TransaksiController::class, 'showByUser']);
 });
+
+Route::post('/transaksi-test', [App\Http\Controllers\api\TransaksiController::class, 'test']);
+Route::post('/cek-stok', [App\Http\Controllers\api\TransaksiController::class, 'cekStok']);
+

@@ -89,7 +89,6 @@ class AlamatController extends Controller
         $data = $request->all();
 
         $validate = Validator::make($data, [
-            'id_user' => 'required',
             'provinsi' => 'required',
             'kabupaten' => 'required',
             'kecamatan' => 'required',
