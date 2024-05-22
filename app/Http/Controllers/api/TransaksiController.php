@@ -404,10 +404,13 @@ class TransaksiController extends Controller
         $validate = Validator::make($data, [
            "jenis_pesanan" => "required",
            "detail_transaksi" => "required",
-           "id_packgaging" => "required",
+        //    "id_packgaging" => "required",
+            "total_harga_transaksi" => "required",
            "point_terpakai" => "required",
            "jenis_pengiriman" => "required"
         ]);
+
+        
 
         if ($validate->fails()) {
             return response(['message' => $validate->errors()->first()], 400);

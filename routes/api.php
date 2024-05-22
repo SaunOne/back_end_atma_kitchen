@@ -146,6 +146,7 @@ Route::middleware(['auth:api', 'customer'])->group(function () {
      Route::get('/produk/search/{id}', [App\Http\Controllers\api\ProdukController::class, 'showById']);
      //transaksi
      Route::get('/transaksi', [App\http\Controllers\api\TransaksiController::class, 'showByUser']);
+     Route::post('/check-out', [App\http\Controllers\api\TransaksiController::class, 'chekOut']);
 
      //keranjang
      Route::get('/keranjang', [App\Http\Controllers\api\KeranjangController::class, 'showAll']);
