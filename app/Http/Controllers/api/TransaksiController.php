@@ -7,6 +7,7 @@ use App\Models\DetailTransaksi;
 use App\Models\Produk;
 use App\Models\Transaksi;
 use App\Models\Alamat;
+
 use App\Models\Hampers;
 use App\Models\LimitOrder;
 use App\Models\ReadyStok;
@@ -394,8 +395,37 @@ class TransaksiController extends Controller
         ],200);
     }
 
-    public function chekOut(){
-        
+    public function chekOut(Request $request){
+
+        $data = $request->all();
+
+        $validate = Validator::make($data, [
+           "jenis_pesanan" => "required",
+           "detail_transaksi" => "required",
+           "id_packgaging" => "required",
+           "point_terpakai" => "required",
+           "jenis_pengiriman" => "required"
+        ]);
+
+        if ($validate->fails()) {
+            return response(['message' => $validate->errors()->first()], 400);
+        }
+
+       if($data['jenis_pesanan'] == "ready stok"){
+            $data['tanggal_pengambilan'] = now();
+       }
+
+       Transaksi::create($data);
+
+       foreach($data['detail_transaksi'] as $dt){
+            DetailTransaksi::create($dt);
+       }
+
+
+       return response([
+            "message" => "successfully create transaksi",
+            "data" => $transaksi
+       ],200);
     }
 
     public function konfirmasiPembayaran(Request $request){

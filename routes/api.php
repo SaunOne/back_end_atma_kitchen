@@ -142,13 +142,22 @@ Route::middleware(['auth:api', 'customer'])->group(function () {
      Route::get('/user-profile', [App\Http\Controllers\api\UserController::class, 'getProfile']);
      Route::get('/user-auth', [App\Http\Controllers\api\UserController::class, 'findByAuth']);
      Route::post('/user/update-profile', [App\Http\Controllers\api\UserController::class, 'updateProfile']);
-     Route::get('/produk', [App\Http\Controllers\api\ProdukController::class, 'showAll']);
-     Route::get('/produk/{tanggal}', [App\Http\Controllers\api\ProdukController::class, 'showAllByTanggal']);
+     
      Route::get('/produk/search/{id}', [App\Http\Controllers\api\ProdukController::class, 'showById']);
      //transaksi
      Route::get('/transaksi', [App\http\Controllers\api\TransaksiController::class, 'showByUser']);
-});
+
+     //keranjang
+     Route::get('/keranjang', [App\Http\Controllers\api\KeranjangController::class, 'showAll']);
+     Route::get('/keranjang/{id}', [App\Http\Controllers\api\KeranjangController::class, 'showById']);
+     Route::get('/keranjang-user', [App\Http\Controllers\api\KeranjangController::class, 'showByUser']);
+     Route::post('/keranjang', [App\Http\Controllers\api\KeranjangController::class, 'store']);
+     Route::put('/keranjang/{id}', [App\Http\Controllers\api\KeranjangController::class, 'update']);
+     Route::delete('/keranjang/{id}', [App\Http\Controllers\api\KeranjangController::class, 'destroy']);
+}); 
 
 Route::post('/transaksi-test', [App\Http\Controllers\api\TransaksiController::class, 'test']);
 Route::post('/cek-stok', [App\Http\Controllers\api\TransaksiController::class, 'cekStok']);
+Route::get('/produk', [App\Http\Controllers\api\ProdukController::class, 'showAll']);
+Route::get('/produk/{tanggal}', [App\Http\Controllers\api\ProdukController::class, 'showAllByTanggal']);
 
