@@ -415,7 +415,7 @@ class TransaksiController extends Controller
             $data['tanggal_pengambilan'] = now();
        }
 
-       Transaksi::create($data);
+       $transaksi = Transaksi::create($data);
 
        foreach($data['detail_transaksi'] as $dt){
             DetailTransaksi::create($dt);
