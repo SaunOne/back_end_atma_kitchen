@@ -33,6 +33,25 @@ class AlamatController extends Controller
         ], 200);
     }
 
+    public function showByUser(){
+        $id = auth()->User()->id_user;
+
+        $alamats = Alamat::select()->where('id_user' , $id)->get();
+
+        if($alamats->isEmpty()) {
+            return response([
+                "message" => "Alamat not found",
+                
+            ],404);
+        }
+
+        return response([
+            "message" => "Show Alamat Successfully",
+            "data" => $alamats,
+        ],200);
+
+    }
+
     public function store(Request $request)
     {
         $data = $request->all();
@@ -70,7 +89,6 @@ class AlamatController extends Controller
         $data = $request->all();
 
         $validate = Validator::make($data, [
-            'id_user' => 'required',
             'provinsi' => 'required',
             'kabupaten' => 'required',
             'kecamatan' => 'required',

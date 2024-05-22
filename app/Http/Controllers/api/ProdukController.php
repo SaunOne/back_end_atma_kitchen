@@ -25,29 +25,135 @@ class ProdukController extends Controller
 {
     public function showAll()
     {
-        $produks = Produk::join('ready_stok', 'ready_stok.id_stok_produk', '=', 'produk.id_stok_produk')->select('produk.*', 'ready_stok.*')->get();
 
+        //init buat list prdouknya
+        $listProduk = [];
 
+        $produkUtama = Produk::select(
+            'produk.*',
+            'lo.*',
+            'rs.*'
+        )
+            ->join('produk_utama as pu', 'pu.id_produk', '=', 'produk.id_produk')
+            ->join('limit_order as lo', 'lo.id_produk', '=', 'pu.id_produk')
+            ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'produk.id_stok_produk')
+            ->where('lo.tanggal', '2024-05-19')
+            ->get();
+        
+        $listProduk = $produkUtama;
 
-        foreach ($produks as $produk) {
-            if ($produk->jenis_produk == "Titipan") {
-            } else if ($produk->jenis_produk == "Hampers") {
-                $products = DB::table('detail_hampers as dh')
-                    ->join('hampers as h', 'dh.id_hampers', '=', 'h.id_produk')
-                    ->join('produk_utama as pu', 'pu.id_produk', '=', 'dh.id_produk')
-                    ->join('produk as p', 'p.id_produk', '=', 'pu.id_produk')
-                    ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'p.id_stok_produk')
-                    ->select('p.*', 'rs.*')
-                    ->where('h.id_produk', '=', $produk->id_produk)
-                    ->get();
-                $produk->produk = $products;
-            } else if ($produk->jenis_produk == "Utama") {
-            }
+        //cari produk titipan
+        $produkTitipan = Produk::select('produk.*', 'rs.*')
+            ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'produk.id_stok_produk')
+            ->get();
+
+        $listProduk = $produkTitipan->merge($listProduk);
+
+        $produkHampers = Produk::select()
+            ->where('jenis_produk', 'Hampers')
+            ->get();
+
+        foreach ($produkHampers as $produk) {
+            $products = DB::table('detail_hampers as dh')
+                ->join('hampers as h', 'dh.id_hampers', '=', 'h.id_produk')
+                ->join('produk_utama as pu', 'pu.id_produk', '=', 'dh.id_produk')
+                ->join('produk as p', 'p.id_produk', '=', 'pu.id_produk')
+                ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'p.id_stok_produk')
+                ->select('p.*', 'rs.*')
+                ->where('h.id_produk', '=', $produk->id_produk)
+                ->get();
+            
+            $produk->produk = $products;
+            $produk->jumlah_sisa = DB::table('detail_hampers as dt')
+            ->join('hampers as h', 'h.id_produk', '=', 'dt.id_hampers')
+            ->join('produk_utama as pu', 'pu.id_produk', '=', 'dt.id_produk')
+            ->join('limit_order as lo', 'lo.id_produk', '=', 'pu.id_produk')
+            ->where('dt.id_hampers', $produk['id_produk'])
+            ->where('lo.tanggal', '2024-5-19') //nanti inget ganti ke now()
+            ->min('lo.jumlah_sisa');
+
+            $produk->jumlah_stok = DB::table('detail_hampers as dt')
+            ->join('hampers as h', 'h.id_produk', '=', 'dt.id_hampers')
+            ->join('produk_utama as pu', 'pu.id_produk', '=', 'dt.id_produk')
+            ->join('produk as p', 'p.id_produk', '=', 'pu.id_produk')
+            ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'p.id_stok_produk')
+            ->where('dt.id_hampers', $produk['id_produk'])
+            ->min('rs.jumlah_stok');
+
+            $listProdukHampers[] = $produk;
         }
+        $listProduk = $listProduk->merge($listProdukHampers);
 
         return response([
             'message' => 'All Produk Retrieved',
-            'data' => $produks
+            'data' => $listProduk
+        ], 200);
+    }
+
+    public function showAllByTanggal($tanggal)
+    {
+
+        //init buat list prdouknya
+        $listProduk = [];
+
+        $produkUtama = Produk::select(
+            'produk.*',
+            'lo.*',
+            'rs.*'
+        )
+            ->join('produk_utama as pu', 'pu.id_produk', '=', 'produk.id_produk')
+            ->join('limit_order as lo', 'lo.id_produk', '=', 'pu.id_produk')
+            ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'produk.id_stok_produk')
+            ->where('lo.tanggal', '2024-05-19')
+            ->get();
+
+        $listProduk = $produkUtama;
+
+        //cari produk titipan
+        $produkTitipan = Produk::select('produk.*', 'rs.*')
+            ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'produk.id_stok_produk')
+            ->get();
+ 
+        $listProduk = $produkTitipan->merge($listProduk);
+
+        $produkHampers = Produk::select()
+            ->where('jenis_produk', 'Hampers')
+            ->get();
+
+        foreach ($produkHampers as $produk) {
+            $products = DB::table('detail_hampers as dh')
+                ->join('hampers as h', 'dh.id_hampers', '=', 'h.id_produk')
+                ->join('produk_utama as pu', 'pu.id_produk', '=', 'dh.id_produk')
+                ->join('produk as p', 'p.id_produk', '=', 'pu.id_produk')
+                ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'p.id_stok_produk')
+                ->select('p.*', 'rs.*')
+                ->where('h.id_produk', '=', $produk->id_produk)
+                ->get();
+            
+            $produk->produk = $products;
+            $produk->jumlah_sisa = DB::table('detail_hampers as dt')
+            ->join('hampers as h', 'h.id_produk', '=', 'dt.id_hampers')
+            ->join('produk_utama as pu', 'pu.id_produk', '=', 'dt.id_produk')
+            ->join('limit_order as lo', 'lo.id_produk', '=', 'pu.id_produk')
+            ->where('dt.id_hampers', $produk['id_produk'])
+            ->where('lo.tanggal', '2024-5-19') //nanti inget ganti ke now()
+            ->min('lo.jumlah_sisa');
+
+            $produk->jumlah_stok = DB::table('detail_hampers as dt')
+            ->join('hampers as h', 'h.id_produk', '=', 'dt.id_hampers')
+            ->join('produk_utama as pu', 'pu.id_produk', '=', 'dt.id_produk')
+            ->join('produk as p', 'p.id_produk', '=', 'pu.id_produk')
+            ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'p.id_stok_produk')
+            ->where('dt.id_hampers', $produk['id_produk'])
+            ->min('rs.jumlah_stok');
+
+            $listProdukHampers[] = $produk;
+        }
+        $listProduk = $listProduk->merge($listProdukHampers);
+
+        return response([
+            'message' => 'All Produk Retrieved',
+            'data' => $listProduk
         ], 200);
     }
 
@@ -67,19 +173,6 @@ class ProdukController extends Controller
             'data' => $produk
         ], 200);
     }
-
-    
-    public function showHampersById($id)
-    {
-        $produks = Produk::join('hampers', 'hampers.id_produk', '=', 'produk.id_produk')-> 
-        join('detail_hampers', 'detail_hampers.id_hampers', '=', 'hampers.id_produk')->
-        select('produk.*', 'detail_hampers.*', 'hampers.*')->where('produk.id_produk', $id)->get();
-        return resesponse([
-            'data' => $produks
-        ], 200);
-
-    }
-    
 
     // public function showByIdAll($id)
     // {
@@ -294,212 +387,25 @@ class ProdukController extends Controller
                 ]);
 
                 break;
-
-
-                //         //kalo engga ada
-                //         if (!isset($data['id_produk'])) {
-                //             //ini create produk baru
-
-                //         else{
-                //             //kalo id produknya ada
-                //             // return (["message" => "success update", "data" => $data]);
-                //             $produk = Produk::find($data['id_produk'])->first();
-                //             $produk->update($data);
-                //             $data['id_stok_produk'] = $produk->id_stok_produk;
-                //         }
-
-                //         DB::table('ready_stok')
-                //             ->where('id_stok_produk', $data['id_stok_produk'])
-                //             ->increment('jumlah_stok', $data['jumlah_produk_dititip']);
-
-
-                //         $data['tanggal'] = now();
-
-                //         $produkTitipan = ProdukTitipan::create($data);
-                //         return (["message" => "success create titipan", "data" => $data]);
-
-
-                //         break;
-                //     case 'Titipan':
-                //         $validate = Validator::make($data, [
-                //             // 'id_packaging' => 'required',
-                //             'jenis_produk' => 'required',
-
-                //         ]);
-
-                //         if (!isset($data['id_penitip'])) {
-                //             $produk = Produk::select('id_stok_produk')->find($data['id_produk'])->first();
-                //             $data['id_stok_produk'] = $produk->id_stok_produk;
-                //         }
-
-
-
-                //         break;
-                //     case 'Hampers':
-                //         $validate = Validator::make($data, [
-                //             'id_packaging' => 'required',
-                //             'jenis_produk' => 'required',
-
-                //         ]);
-
-                //         $data['jumlah_stok'] = 0;
-                //         $readyStok = ReadyStok::create($data);
-                //         $data['id_stok_produk'] = $readyStok->id_stok_produk;
-                //         //create produk
-                //         $produk = Produk::create($data);
-                //         $data['id_produk'] = $produk['id_produk'];
-
-                //         $hamper = new Hampers;
-                //         $hamper->id_packaging = $data['id_packaging'];
-                //         $hamper->id_produk = $data['id_produk'];
-                //         $hamper->limit_harian = 5;
-                //         $hamper->save();
-
-                //         foreach ($data['detail_hampers'] as $dh) {
-                //             $dh['id_hampers'] = $data['id_produk'];
-                //             DetailHampers::create($dh);
-                //         }
-                //         break;
         }
     }
 
-
-
-    // public function store(Request $request)
-    // {
-    //     $data = $request->all();
-
-    //     if (!isset($data['id_produk'])) {
-    //         if ($data['jenis_produk'] == 'produk utama') {
-    //             $validate = Validator::make($data, [
-    //                 'id_packaging' => 'required',
-    //                 'katagorie_produk' => 'required',
-    //             ]);
-    //             if ($validate->fails()) {
-    //                 return response(['message' => $validate->errors()->first()], 400);
-    //             }
-    //         } else if ($data['jenis_produk'] == 'produk titipan') {
-    //             $validate = Validator::make($data, [
-    //                 'id_penitip' => 'required',
-    //                 'jumlah_produk_dititip' => 'required',
-    //             ]);
-    //             if ($validate->fails()) {
-    //                 return response(['message' => $validate->errors()->first()], 400);
-    //             }
-    //         } else if ($data['jenis_produk'] == 'hampers') {
-    //             $validate = Validator::make($data, [
-    //                 'id_packaging' => 'required',
-    //                 'limit_harian' => 'required',
-    //                 'detail_hampers' => 'required'
-    //             ]);
-    //             if ($validate->fails()) {
-    //                 return response(['message' => $validate->errors()->first()], 400);
-    //             }
-    //         }
-    //     }
-    //     $validate = Validator::make($data, [
-    //         'nama_produk' => 'required',
-    //         'harga' => 'required',
-    //         'quantity' => 'required',
-    //         'deskripsi' => 'required',
-    //         'jenis_produk' => 'required',
-    //     ]);
-
-    //     if ($validate->fails()) {
-    //         return response(['message' => $validate->errors()->first()], 400);
-    //     }
-
-    //     if ($data['jenis_produk'] === 'produk titipan' && isset($data['id_produk'])) {
-    //         $data['id_stok_produk'] = Produk::where('id_produk', $data['id_produk'])->value('id_stok_produk');
-    //         $data['jumlah_stok'] = $data['jumlah_produk_dititip'];
-    //     }
-
-    //     $readyStok = ReadyStok::updateOrCreate(
-    //         ['id_stok_produk' => $data['id_stok_produk'] ?? null],
-    //         ['jumlah_stok' => DB::raw('jumlah_stok + ' . ($data['jumlah_stok'] ?? 0))]
-    //     );
-
-    //     if (!isset($data['id_stok_produk'])) {
-    //         // $readyStok['satuan'] = $data['satuan'];  
-    //         $readyStok['jumlah_stok'] = $data['jumlah_stok'];
-    //         $readyStok->save();
-    //         $data['id_stok_produk'] = $readyStok['id_stok_produk'];
-    //     }
-
-    //     $produk = Produk::updateOrCreate(
-    //         ['id_produk' => $data['id_produk'] ?? null],
-    //         $data
-    //     );
-
-    //     $data['id_produk'] = $produk['id_produk'];
-
-    //     switch ($data['jenis_produk']) {
-    //         case 'Utama':
-    //             app(ProdukUtamaController::class)->store(new Request($data));
-    //             break;
-    //         case 'Hampers':
-
-    //             $data['DetailHampers']['id_produk'] = $produk['id_produk'];
-
-    //             $data = Hampers::create($data['DetailHampers']);
-    //             return response(['data' =>  $data['DetailHampers']]);
-    //             $this->handleDetailHampers($data);
-    //             break;
-    //         case 'Titipan':
-    //             app(ProdukTitipanController::class)->store(new Request($data));
-    //             break;
-    //     }
-
-    //     return response(['message' => 'Produk created successfully'], 200);
-    // }
-
-    // protected function handleDetailHampers($data)
-    // {
-    //     foreach ($data['detail_hampers'] as $dH) {
-    //         app(DetailHampersController::class)->store(new Request(array_merge($dH, ["id_hampers" => $data["id_produk"]])));
-    //     }
-    // }
-
     public function update(Request $request, $id)
     {
-        $produk = Produk::where('id_produk',$id)->first();
-        
+        $produk = Produk::find($id);
+
         if (!$produk) {
             return response(['message' => 'Produk not found'], 404);
         }
 
         $data = $request->all();
-        
-        if ($request->hasFile('image_produk')) {
-            $uploadFolder = 'images';
-            $image = $request->file('image_produk');
-
-            if ($data['image_produk']) {
-                Storage::disk('public')->delete($data['image_produk']);
-            }
-            // Generate nama file acak dengan 12 karakter
-            $randomFileName = Str::random(12);
-            // Dapatkan ekstensi file asli
-            $extension = $image->getClientOriginalExtension();
-            // Gabungkan nama file acak dengan ekstensi
-            $fileNameToStore = $randomFileName . '.' . $extension;
-            // Simpan gambar
-            $image_uploaded_path = $image->storeAs($uploadFolder, $fileNameToStore, 'public');
-            // Mendapatkan nama file yang diunggah
-            $uploadedImageResponse = basename($image_uploaded_path);
-            // Set data foto profile baru
-            $data['image_produk'] = 'images/' . $uploadedImageResponse;
-        }
-
-        
-        
 
         $validate = Validator::make($data, [
             'nama_produk' => 'required',
             'harga' => 'required',
             'quantity' => 'required',
             'deskripsi' => 'required',
-            'jenis_produk' => 'required',
+            'jenis_produk' => 'required'
         ]);
 
         if ($validate->fails()) {

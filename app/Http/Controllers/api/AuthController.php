@@ -8,12 +8,18 @@ use App\Mail\VerifikasiEmail;
 use App\Models\User;
 use App\Models\Wallet;
 use App\Models\Point;
+use App\Models\Wallet;
+use App\Models\Point;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\DB;
+
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\DB;
@@ -130,21 +136,12 @@ class AuthController extends Controller
         if (!Auth::attempt($loginData)) {
             return response(['message' => 'Invalid email & password  match'], 401);
         }
-        
-        
         /** @var \App\Models\User $user  **/
         $user = Auth::user();
-
-        
         $result = $user->createToken('Authentication Token')->accessToken;
-
-       
-       
 
         $data = User::join('role', 'users.id_role', '=', 'role.id_role')
             ->select('users.*', 'role.*')->where('users.id_user', $user->id_user)->first();
-
-            
 
         return response([
             'message' => 'Authenticated',
