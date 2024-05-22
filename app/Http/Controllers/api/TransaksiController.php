@@ -15,9 +15,8 @@ class TransaksiController extends Controller
 {
     public function showAll()
     {
-        $transaksis = Transaksi::select('transaksi.*','users.nama_lengkap')
-        ->join('users', 'users.id_user', 'transaksi.id_user')
-        ->get();
+        $transaksis = Transaksi::select('transaksi.*','users.name_lengkap')
+        ->join('users', 'users.id_user', 'transaksi.id_user')->get();
         foreach ($transaksis as $transaksi) {
             $detail_transaksis = DetailTransaksi::where('id_transaksi', $transaksi->id_transaksi)->get();
             $transaksi->detail_transaksi = $detail_transaksis;
@@ -74,20 +73,18 @@ class TransaksiController extends Controller
     {
         $data = $request->all();
 
+        //cek validasi data yang diperlukan 
         $validate = Validator::make($data, [
-            // add validation rules for your fields
+            'detail_transaksi' => 'required',
+            
         ]);
 
         if ($validate->fails()) {
             return response(['message' => $validate->errors()->first()], 400);
-        }
+        };
 
-        $transaksi = Transaksi::create($data);
-
-        return response([
-            'message' => 'Transaksi created successfully',
-            'data' => $transaksi
-        ], 200);
+        
+        
     }
 
     public function update(Request $request, $id)
