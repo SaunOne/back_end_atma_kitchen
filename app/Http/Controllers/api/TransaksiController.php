@@ -399,6 +399,8 @@ class TransaksiController extends Controller
 
         $data = $request->all();
 
+        $data['id_user'] = Auth::user()->id_user;
+
         $validate = Validator::make($data, [
            "jenis_pesanan" => "required",
            "detail_transaksi" => "required",
@@ -414,6 +416,13 @@ class TransaksiController extends Controller
        if($data['jenis_pesanan'] == "ready stok"){
             $data['tanggal_pengambilan'] = now();
        }
+
+       if($data['jenis_pengiriman'] == "Atma Delivery"){
+            $data['status_transaksi'] = "Menunggu Biaya Pengiriman";
+       } else {
+            $data['sataus_transaksi'] = "Menunggu Pembayaran";
+       }
+       
 
        $transaksi = Transaksi::create($data);
 
