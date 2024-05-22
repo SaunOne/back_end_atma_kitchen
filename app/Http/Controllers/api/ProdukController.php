@@ -25,27 +25,135 @@ class ProdukController extends Controller
 {
     public function showAll()
     {
-        $produks = Produk::join('ready_stok', 'ready_stok.id_stok_produk', '=', 'produk.id_stok_produk')->select('produk.*', 'ready_stok.*')->get();
-         
-        foreach ($produks as $produk) {
-            if ($produk->jenis_produk == "Titipan") {
-            } else if ($produk->jenis_produk == "Hampers") {
-                $products = DB::table('detail_hampers as dh')
-                    ->join('hampers as h', 'dh.id_hampers', '=', 'h.id_produk')
-                    ->join('produk_utama as pu', 'pu.id_produk', '=', 'dh.id_produk')
-                    ->join('produk as p', 'p.id_produk', '=', 'pu.id_produk')
-                    ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'p.id_stok_produk')
-                    ->select('p.*', 'rs.*')
-                    ->where('h.id_produk', '=', $produk->id_produk)
-                    ->get();
-                $produk->produk = $products;
-            } else if ($produk->jenis_produk == "Utama") {
-            }
+
+        //init buat list prdouknya
+        $listProduk = [];
+
+        $produkUtama = Produk::select(
+            'produk.*',
+            'lo.*',
+            'rs.*'
+        )
+            ->join('produk_utama as pu', 'pu.id_produk', '=', 'produk.id_produk')
+            ->join('limit_order as lo', 'lo.id_produk', '=', 'pu.id_produk')
+            ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'produk.id_stok_produk')
+            ->where('lo.tanggal', '2024-05-19')
+            ->get();
+        
+        $listProduk = $produkUtama;
+
+        //cari produk titipan
+        $produkTitipan = Produk::select('produk.*', 'rs.*')
+            ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'produk.id_stok_produk')
+            ->get();
+
+        $listProduk = $produkTitipan->merge($listProduk);
+
+        $produkHampers = Produk::select()
+            ->where('jenis_produk', 'Hampers')
+            ->get();
+
+        foreach ($produkHampers as $produk) {
+            $products = DB::table('detail_hampers as dh')
+                ->join('hampers as h', 'dh.id_hampers', '=', 'h.id_produk')
+                ->join('produk_utama as pu', 'pu.id_produk', '=', 'dh.id_produk')
+                ->join('produk as p', 'p.id_produk', '=', 'pu.id_produk')
+                ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'p.id_stok_produk')
+                ->select('p.*', 'rs.*')
+                ->where('h.id_produk', '=', $produk->id_produk)
+                ->get();
+            
+            $produk->produk = $products;
+            $produk->jumlah_sisa = DB::table('detail_hampers as dt')
+            ->join('hampers as h', 'h.id_produk', '=', 'dt.id_hampers')
+            ->join('produk_utama as pu', 'pu.id_produk', '=', 'dt.id_produk')
+            ->join('limit_order as lo', 'lo.id_produk', '=', 'pu.id_produk')
+            ->where('dt.id_hampers', $produk['id_produk'])
+            ->where('lo.tanggal', '2024-5-19') //nanti inget ganti ke now()
+            ->min('lo.jumlah_sisa');
+
+            $produk->jumlah_stok = DB::table('detail_hampers as dt')
+            ->join('hampers as h', 'h.id_produk', '=', 'dt.id_hampers')
+            ->join('produk_utama as pu', 'pu.id_produk', '=', 'dt.id_produk')
+            ->join('produk as p', 'p.id_produk', '=', 'pu.id_produk')
+            ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'p.id_stok_produk')
+            ->where('dt.id_hampers', $produk['id_produk'])
+            ->min('rs.jumlah_stok');
+
+            $listProdukHampers[] = $produk;
         }
+        $listProduk = $listProduk->merge($listProdukHampers);
 
         return response([
             'message' => 'All Produk Retrieved',
-            'data' => $produks
+            'data' => $listProduk
+        ], 200);
+    }
+
+    public function showAllByTanggal($tanggal)
+    {
+
+        //init buat list prdouknya
+        $listProduk = [];
+
+        $produkUtama = Produk::select(
+            'produk.*',
+            'lo.*',
+            'rs.*'
+        )
+            ->join('produk_utama as pu', 'pu.id_produk', '=', 'produk.id_produk')
+            ->join('limit_order as lo', 'lo.id_produk', '=', 'pu.id_produk')
+            ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'produk.id_stok_produk')
+            ->where('lo.tanggal', '2024-05-19')
+            ->get();
+
+        $listProduk = $produkUtama;
+
+        //cari produk titipan
+        $produkTitipan = Produk::select('produk.*', 'rs.*')
+            ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'produk.id_stok_produk')
+            ->get();
+ 
+        $listProduk = $produkTitipan->merge($listProduk);
+
+        $produkHampers = Produk::select()
+            ->where('jenis_produk', 'Hampers')
+            ->get();
+
+        foreach ($produkHampers as $produk) {
+            $products = DB::table('detail_hampers as dh')
+                ->join('hampers as h', 'dh.id_hampers', '=', 'h.id_produk')
+                ->join('produk_utama as pu', 'pu.id_produk', '=', 'dh.id_produk')
+                ->join('produk as p', 'p.id_produk', '=', 'pu.id_produk')
+                ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'p.id_stok_produk')
+                ->select('p.*', 'rs.*')
+                ->where('h.id_produk', '=', $produk->id_produk)
+                ->get();
+            
+            $produk->produk = $products;
+            $produk->jumlah_sisa = DB::table('detail_hampers as dt')
+            ->join('hampers as h', 'h.id_produk', '=', 'dt.id_hampers')
+            ->join('produk_utama as pu', 'pu.id_produk', '=', 'dt.id_produk')
+            ->join('limit_order as lo', 'lo.id_produk', '=', 'pu.id_produk')
+            ->where('dt.id_hampers', $produk['id_produk'])
+            ->where('lo.tanggal', '2024-5-19') //nanti inget ganti ke now()
+            ->min('lo.jumlah_sisa');
+
+            $produk->jumlah_stok = DB::table('detail_hampers as dt')
+            ->join('hampers as h', 'h.id_produk', '=', 'dt.id_hampers')
+            ->join('produk_utama as pu', 'pu.id_produk', '=', 'dt.id_produk')
+            ->join('produk as p', 'p.id_produk', '=', 'pu.id_produk')
+            ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'p.id_stok_produk')
+            ->where('dt.id_hampers', $produk['id_produk'])
+            ->min('rs.jumlah_stok');
+
+            $listProdukHampers[] = $produk;
+        }
+        $listProduk = $listProduk->merge($listProdukHampers);
+
+        return response([
+            'message' => 'All Produk Retrieved',
+            'data' => $listProduk
         ], 200);
     }
 
@@ -279,7 +387,6 @@ class ProdukController extends Controller
                 ]);
 
                 break;
-
         }
     }
 

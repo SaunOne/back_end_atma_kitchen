@@ -172,104 +172,7 @@ class TransaksiController extends Controller
             return $detail['id_produk'];
         }, $data['detail_transaksi']);
 
-
-        if ($data['jenis_pesanan'] == "pre order") {
-
-            //mencari produk titipannya dulu agar yang di cek adalah ready stoknya saat terjadi pesanan pre order namun produk titipan
-            $produkData = Produk::select('produk.*', 'rs.*')
-                ->join('produk_utama as pu', 'produk.id_produk', '=', 'pu.id_produk')
-                ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'produk.id_stok_produk')
-                ->whereIn('produk.id_produk', $idProdukList)
-                ->get();
-
-            for ($i = 0; $i < $produkData->count(); $i++) {
-                if ($data['detail_transaksi'][$i]['jumlah_produk'] > $produkData[$i]['jumlah_stok']) {
-                    $produkData[$i]['message'] = $produkData[$i]['nama_produk'] . " tersisa " . $produkData[$i]['jumlah_stok'] . " " . $produkData[$i]['satuan'];
-                    $kekuranganStok[] = $produkData[$i];
-                }
-            }
-
-            //cek hampers
-
-            //cari produk hampers terlebih dahulu
-            $produkData = Produk::select('produk.*', 'rs.*')
-                ->join('produk_utama as pu', 'produk.id_produk', '=', 'pu.id_produk')
-                ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'p.id_stok_produk')
-                ->whereIn('produk.id_produk', $idProdukList)
-                ->where('produk.jenis_produk', '=', 'Hampers')
-                ->get();
-
-            //setelah dapet masuk ke detail hampersnya
-            if ($produkData->isEmpty()) {
-                foreach ($produkData as $produk) {
-                    $produkHampers = DB::table('detail_hampers as dh')
-                        ->join('hampers as h', 'dh.id_hampers', '=', 'h.id_produk')
-                        ->join('produk_utama as pu', 'pu.id_produk', '=', 'dh.id_produk')
-                        ->join('produk as p', 'p.id_produk', '=', 'pu.id_produk')
-                        ->join('limit_order as lo', 'p.id_produk', '=', 'lo.id_produk')
-                        ->select('p.*', 'lo.*')
-                        ->where('h.id_produk', $produk['id_produk'])
-                        ->get();
-                    for ($i = 0; $i < count($produkHampers); $i++) {
-                        if ($produkHampers[$i]['jumlah_sisa'] < $data['detail_transaksi'][$i]['jumlah_produk']) {
-                            $produkHampers[$i]['message'] = $produkHampers[$i]['nama_produk'] . " tersisa " . $produkHampers[$i]['jumlah_sisa'] . " " . $produkHampers[$i]['satuan'];
-                            $message = $produk['nama_produk'] . " Sedang Habis";
-                            $produk["message"] = $message;
-                        }
-                    }
-                }
-            }
-
-            $produkHampers = DB::table('detail_hampers as dh')
-                ->join('hampers as h', 'dh.id_hampers', '=', 'h.id_produk')
-                ->join('produk_utama as pu', 'pu.id_produk', '=', 'dh.id_produk')
-                ->join('produk as p', 'p.id_produk', '=', 'pu.id_produk')
-                ->join('limit_order as lo', 'p.id_produk', '=', 'lo.id_produk')
-                ->select('p.*', 'lo.*')
-                ->whereIn('h.id_produk', $idProdukList)
-                ->get();
-
-            for ($i = 0; $i < count($produkHampers); $i++) {
-                if ($produkHampers[$i]['jumlah_sisa'] < $data['detail_transaksi'][$i]['jumlah_produk']) {
-                    $produkHampers[$i]['message'] = $produkHampers[$i]['nama_produk'] . " tersisa " . $produkHampers[$i]['jumlah_sisa'] . " " . $produkHampers[$i]['satuan'];
-                    $kelimit[] = $produkHampers[$i];
-                }
-            }
-
-
-
-            //mencari produk utama
-            $produkData = Produk::select('produk.*', 'lo.*', 'rs.*')
-                ->join('produk_utama as pu', 'produk.id_produk', '=', 'pu.id_produk')
-                ->join('limit_order as lo', 'produk.id_produk', '=', 'lo.id_produk')
-                ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'p.id_stok_produk')
-                ->whereIn('produk.id_produk', $idProdukList)
-                ->where('lo.tanggal', '=', $data['tanggal_pengambilan'])
-                ->get();
-        }
-
-
-
-        $kelimit[] = [];
-        for ($i = 0; $i < count($produkData); $i++) {
-            if ($produkData[$i]['jenis_produk'] == 'Titipan') {
-                if ($data['detail_transaksi'][$i]['jumlah_produk'] > $produkData[$i]['jumlah_stok']) {
-                    $produkData[$i]['message'] = $produkData[$i]['nama_produk'] . " tersisa " . $produkData[$i]['jumlah_stok'] . " " . $produkData[$i]['satuan'];
-                    $kelimit[] = $produkData[$i];
-                }
-            } else if ($produkData[$i]['jenis_produk'] == 'Utama') {
-                if ($produkData[$i]['jumlah_sisa'] < $data['detail_transaksi'][$i]['jumlah_produk']) {
-                    $produkData[$i]['message'] = $produkData[$i]['nama_produk'] . " tersisa " . $produkData[$i]['jumlah_sisa'] . " " . $produkData[$i]['satuan'];
-                    $kelimit[] = $produkData[$i];
-                }
-            }
-        }
-
-
-
-        return response([
-            "data" => $produkData
-        ], 400);
+        
     }
 
     public function cekStok(Request $request)
@@ -312,6 +215,7 @@ class TransaksiController extends Controller
                     }
 
                     if ($produkUtama['jumlah_sisa'] < $jumlahProduk) {
+                        $produkUtama["message"] = $produkUtama['nama_produk'] . " tersisa " . $produkUtama['jumlah_sisa'] . " " . $produkUtama['satuan'];
                         $listEror[] = $produkUtama;
                     }
                 } else if ($produkData[$i]['jenis_produk'] == 'Titipan') {
@@ -330,6 +234,7 @@ class TransaksiController extends Controller
                     }
 
                     if ($produkTitipan['jumlah_sisa'] < $jumlahProduk) {
+                        $produkTitipan["message"] = $produkTitipan['nama_produk'] . " tersisa " . $produkTitipan['jumlah_sisa'] . " " . $produkTitipan['satuan'];
                         $listEror[] = $produkTitipan;
                     }
                 } else if ($produkData[$i]['jenis_produk'] == 'Hampers') {
@@ -360,16 +265,29 @@ class TransaksiController extends Controller
                                 ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'produk.id_stok_produk')
                                 ->where('produk.id_produk', $produkData[$i]->id_produk)
                                 ->first();
+
+
+                            $minJumlahSisa = DB::table('detail_hampers as dt')
+                                ->join('hampers as h', 'h.id_produk', '=', 'dt.id_hampers')
+                                ->join('produk_utama as pu', 'pu.id_produk', '=', 'dt.id_produk')
+                                ->join('limit_order as lo', 'lo.id_produk', '=', 'pu.id_produk')
+                                ->where('dt.id_hampers', $temp['id_produk'])
+                                ->where('lo.tanggal', $data['tanggal_pengambilan'])
+                                ->min('lo.jumlah_sisa');
+
+                            $temp["message"] = $temp['nama_produk'] . " tersisa " . $minJumlahSisa . " " . $temp['satuan'];
                             $listEror[] = $temp;
                             break;
                         }
                     }
                 }
             }
-
-            return response([
-                "message" => $listEror
-            ]);
+            if(!($listEror == [])){
+                return response([
+                    "message" => $listEror
+                ],400);
+            }
+            
         } else if ($data['jenis_pesanan'] == "ready stok") {
             //kasus ready stok
 
@@ -394,6 +312,7 @@ class TransaksiController extends Controller
                     //     "stok" => $produkUtama["jumlah_stok"]
                     // ]);
                     if ($produkUtama['jumlah_stok'] < $jumlahProduk) {
+                        $produkUtama["message"] = $produkUtama['nama_produk'] . " tersisa " . $produkUtama['jumlah_stok'] . " " . $produkUtama['satuan'];
                         $listEror[] = $produkUtama;
                     }
                 } else if ($produkData[$i]['jenis_produk'] == 'Titipan') {
@@ -409,7 +328,7 @@ class TransaksiController extends Controller
                             break;
                         }
                     }
-               
+
                     if ($produkTitipan['jumlah_stok'] < $jumlahProduk) {
                         $produkTitipan["message"] = $produkTitipan['nama_produk'] . " tersisa " . $produkTitipan['jumlah_stok'] . " " . $produkTitipan['satuan'];
                         $listEror[] = $produkTitipan;
@@ -443,19 +362,95 @@ class TransaksiController extends Controller
                                 ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'produk.id_stok_produk')
                                 ->where('produk.id_produk', $produkData[$i]->id_produk)
                                 ->first();
-                            $temp["message"] = $temp['nama_produk'] . " tersisa " . $temp['jumlah_stok'] . " " . $temp['satuan'];
+
+                            $minJumlahStok = DB::table('detail_hampers as dt')
+                                ->join('hampers as h', 'h.id_produk', '=', 'dt.id_hampers')
+                                ->join('produk_utama as pu', 'pu.id_produk', '=', 'dt.id_produk')
+                                ->join('produk as p', 'p.id_produk', '=', 'pu.id_produk')
+                                ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'p.id_stok_produk')
+                                ->where('dt.id_hampers', $temp['id_produk'])
+                                ->min('rs.jumlah_stok');
+
+                            $temp["message"] = $temp['nama_produk'] . " tersisa " . $minJumlahStok . " " . $temp['satuan'];
                             $listEror[] = $temp;
                             break;
                         }
                     }
                 }
             }
-            return response([
-                "message" => $listEror
-            ]);
+            if(!($listEror == [])){
+                return response([
+                    "message" => $listEror
+                ],400);
+            }
         } else {
-            return response(["message" => "jenis pesanan tidak valid!!"], 400);
+            return response([
+                "message" => "jenis pesanan tidak valid!!"
+            ], 400);
         }
+
+        return response([
+            "meesage" => "Stok Produk Tersedia Semua"
+        ],200);
+    }
+
+    public function chekOut(){
+        
+    }
+
+    public function konfirmasiPembayaran(Request $request){
+        $data = $request->all();
+
+        $transaksi = Transaksi::find($data['id_transaksi']);
+
+        if (!$transaksi) {
+            return response(['message' => 'Absensi not found'], 404);
+        }
+
+        $data['status_transaksai'] = 'Sudah Dibayar';
+        $transaksi->update([
+            $data 
+        ]);
+        
+
+        return response([
+            "message" => "Transaksi Di Update Sudah bayar",
+            "data" => $transaksi
+        ],200);
+    }
+
+    public function konfirmasiPesanan(Request $request){
+         $data = $request->all();
+
+        $transaksi = Transaksi::find($data['id_transaksi']);
+
+        if (!$transaksi) {
+            return response(['message' => 'Absensi not found'], 404);
+        }
+
+        $transaksi->update([
+            $data  
+        ]);
+
+        if($data['status_transaksi'] == 'Ditolak'){
+            //balikin stoknya
+        }
+
+        return response([
+            "message" => "Transaksi Di Update Sudah bayar",
+            "data" => $transaksi
+        ],200);
+
+    }
+
+    public function hitungSisaHampers()
+    {
+
+    }
+
+    public function hitungLimitHampers()
+    {
+
     }
 
     public function update(Request $request, $id)

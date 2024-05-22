@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Hampers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class HampersController extends Controller
 {
@@ -18,6 +19,16 @@ class HampersController extends Controller
             'data' => $hampers
         ], 200);
     }
+
+    // public function cekLimitHampers($tanggal){
+    //     $jumlah_sisa = DB::table('detail_hampers as dt')
+    //         ->join('hampers as h', 'h.id_produk', '=', 'dt.id_hampers')
+    //         ->join('produk_utama as pu', 'pu.id_produk', '=', 'dt.id_produk')
+    //         ->join('limit_order as lo', 'lo.id_produk', '=', 'pu.id_produk')
+    //         ->where('dt.id_hampers', $produk['id_produk'])
+    //         ->where('lo.tanggal', '2024-5-19') //nanti inget ganti ke now()
+    //         ->min('lo.jumlah_sisa');
+    // }
 
     public function showById($id)
     {
