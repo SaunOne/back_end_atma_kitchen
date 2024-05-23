@@ -447,8 +447,9 @@ class TransaksiController extends Controller
             "data" => $transaksi
         ], 200);
     }
-    public function bayar(Request $request)
+    public function bayar(Request $request, $id)
     {
+
         $data = $request->all();
 
         $validate = Validator::make($data, [
@@ -460,16 +461,19 @@ class TransaksiController extends Controller
             return response(['message' => $validate->errors()->first()], 400);
         }
 
-        $transaksi = Transaksi::find($data['id_transaksi']);
+
+        $transaksi = Transaksi::find($id);
 
         if (!$transaksi) {
             return response(['message' => 'Absensi not found'], 404);
         }
 
         if ($data['jumlah_pembayaran'] < $transaksi['total_harga_transaksi']) {
+
             return response([
                 "message" => "Pembayaran Masih Kurang",
-                $data => $transaksi
+                "total" => $transaksi['total_harga_transaksi'],
+                "uang_anda" =>   $data['jumlah_pembayaran']
             ]);
         }
 
@@ -547,19 +551,19 @@ class TransaksiController extends Controller
     {
 
         $transaksi = Transaksi::select()
-                ->where('id_transaksi', $id)
-                ->first();
+            ->where('id_transaksi', $id)
+            ->first();
 
         if ($transaksi['jenis_pengiriman'] == "Atma Kitchen Delivery") {
-            $transaksi = Transaksi::select('transaksi.*', 'u.email','u.nama_lengkap','p.*','a.*')
-            ->join('users as u', 'u.id_user', 'transaksi.id_user')
-            ->join('point as p', 'p.id_user', 'u.id_user')
-            ->join('alamat as a','a.id_alamat','transaksi.id_alamat')
-            ->where('transaksi.id_transaksi', $id)
-            ->first();
-            $data['alamat'] = $transaksi['alamat']['detail_alamat'] . ', ' . $transaksi['alamat']['kelurahan'] . ', ' . $transaksi['alamat']['kecamatan'] . ', ' . $transaksi['alamat']['kabupaten'] .', ' . $transaksi['alamat']['provinsi'];
+            $transaksi = Transaksi::select('transaksi.*', 'u.email', 'u.nama_lengkap', 'p.*', 'a.*')
+                ->join('users as u', 'u.id_user', 'transaksi.id_user')
+                ->join('point as p', 'p.id_user', 'u.id_user')
+                ->join('alamat as a', 'a.id_alamat', 'transaksi.id_alamat')
+                ->where('transaksi.id_transaksi', $id)
+                ->first();
+            $data['alamat'] = $transaksi['alamat']['detail_alamat'] . ', ' . $transaksi['alamat']['kelurahan'] . ', ' . $transaksi['alamat']['kecamatan'] . ', ' . $transaksi['alamat']['kabupaten'] . ', ' . $transaksi['alamat']['provinsi'];
         } else {
-            $transaksi = Transaksi::select('transaksi.*', 'u.*','p.*')
+            $transaksi = Transaksi::select('transaksi.*', 'u.*', 'p.*')
                 ->join('users as u', 'u.id_user', 'transaksi.id_user')
                 ->join('point as p', 'p.id_user', 'u.id_user')
                 ->where('transaksi.id_transaksi', $id)
@@ -583,12 +587,12 @@ class TransaksiController extends Controller
         $data['total'] = $transaksi['total_harga_transaksi'] - $data['total_potongan'];
         $data['point_diperoleh'] = $transaksi['point_diperoleh'];
         $data['point_customer'] = $transaksi['jumlah_point'];
-        
-        $data['produk'] = DetailTransaksi::select('detail_transaksi.*','p.*')
-                ->join('produk as p','p.id_produk','detail_transaksi.id_produk')
-                ->join('transaksi as t','t.id_transaksi','detail_transaksi.id_transaksi')
-                ->where('t.id_user',$id) 
-                ->get();
+
+        $data['produk'] = DetailTransaksi::select('detail_transaksi.*', 'p.*')
+            ->join('produk as p', 'p.id_produk', 'detail_transaksi.id_produk')
+            ->join('transaksi as t', 't.id_transaksi', 'detail_transaksi.id_transaksi')
+            ->where('t.id_user', $id)
+            ->get();
 
         return response([
             "message" => "show Nota successfully",
@@ -598,7 +602,6 @@ class TransaksiController extends Controller
 
     public function hitungSisaHampers()
     {
-
     }
 
     public function hitungLimitHampers()

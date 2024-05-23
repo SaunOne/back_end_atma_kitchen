@@ -149,6 +149,7 @@ Route::middleware(['auth:api', 'customer'])->group(function () {
      Route::post('/check-out', [App\http\Controllers\api\TransaksiController::class, 'chekOut']);
      Route::post('/bayar',[App\http\Controllers\api\TransaksiController::class, 'chekOut']);
      Route::get('/cetak-nota/{id}',[App\http\Controllers\api\TransaksiController::class, 'cetakNota']);
+     Route::put('/bayar/{id}',[App\http\Controllers\api\TransaksiController::class, 'bayar']);
 
      //keranjang
      Route::get('/keranjang', [App\Http\Controllers\api\KeranjangController::class, 'showAll']);
