@@ -578,10 +578,10 @@ class TransaksiController extends Controller
         $data['total_sebelum_ongkir'] = $transaksi['biaya_pengiriman'] + $transaksi['total_harga_transaksi'];
         $data['ongkir'] = $transaksi['biaya_pengiriman'];
         $data['total_setelah_ongkir'] = $transaksi['total_harga_transaksi'];
-        $data['point'] = $transaksi['point_terpakai'];
+        $data['point_terpakai'] = $transaksi['point_terpakai'];
         $data['total_potongan'] = $transaksi['point_terpakai'] * 100;
         $data['total'] = $transaksi['total_harga_transaksi'] - $data['total_potongan'];
-        $data['point_customer'] = $transaksi['total_harga_transaksi'];
+        $data['point_customer'] = $transaksi['jumlah_point'];
         
         $data['produk'] = DetailTransaksi::select('detail_transaksi.*','p.*')
                 ->join('produk as p','p.id_produk','detail_transaksi.id_produk')
