@@ -32,7 +32,8 @@ class ProdukController extends Controller
         $produkUtama = Produk::select(
             'produk.*',
             'lo.*',
-            'rs.*'
+            'rs.*',
+            'pu.*'
         )
             ->join('produk_utama as pu', 'pu.id_produk', '=', 'produk.id_produk')
             ->join('limit_order as lo', 'lo.id_produk', '=', 'pu.id_produk')
@@ -59,7 +60,7 @@ class ProdukController extends Controller
                 ->join('produk_utama as pu', 'pu.id_produk', '=', 'dh.id_produk')
                 ->join('produk as p', 'p.id_produk', '=', 'pu.id_produk')
                 ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'p.id_stok_produk')
-                ->select('p.*', 'rs.*')
+                ->select('p.*', 'rs.*','pu.*')
                 ->where('h.id_produk', '=', $produk->id_produk)
                 ->get();
             
@@ -99,7 +100,8 @@ class ProdukController extends Controller
         $produkUtama = Produk::select(
             'produk.*',
             'lo.*',
-            'rs.*'
+            'rs.*',
+            'pu.*'
         )
             ->join('produk_utama as pu', 'pu.id_produk', '=', 'produk.id_produk')
             ->join('limit_order as lo', 'lo.id_produk', '=', 'pu.id_produk')
@@ -126,7 +128,7 @@ class ProdukController extends Controller
                 ->join('produk_utama as pu', 'pu.id_produk', '=', 'dh.id_produk')
                 ->join('produk as p', 'p.id_produk', '=', 'pu.id_produk')
                 ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'p.id_stok_produk')
-                ->select('p.*', 'rs.*')
+                ->select('p.*', 'rs.*','pu.*')
                 ->where('h.id_produk', '=', $produk->id_produk)
                 ->get();
             
