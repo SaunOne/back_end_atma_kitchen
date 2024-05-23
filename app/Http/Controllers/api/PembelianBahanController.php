@@ -43,9 +43,9 @@ class PembelianBahanController extends Controller
             'id_bahan' => 'required',
             'jumlah' => 'required',
             'harga_beli' => 'required',
-        
+            'tanggal' => 'required'
         ]);
-        $data['tanggal'] = now();
+
         if ($validate->fails()) {
             return response(['message' => $validate->errors()->first()], 400);
         }
@@ -72,8 +72,9 @@ class PembelianBahanController extends Controller
             'id_bahan' => 'required',
             'jumlah' => 'required',
             'harga_beli' => 'required',
+            'tanggal' => 'required'
         ]);
-        $data['tanggal'] = now();
+
         if ($validate->fails()) {
             return response(['message' => $validate->errors()->first()], 400);
         }

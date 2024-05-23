@@ -20,11 +20,10 @@ class UserController extends Controller
 {
     public function showAll()
     {
-        $users = User::where('id_role', 4)->get();
 
         $user = User::where('id_role',4)->get();
 
-        return response()->json($users);
+        return response()->json($user);
     }
 
     public function getProfile()
@@ -34,7 +33,7 @@ class UserController extends Controller
         $user = User::select('users.*', 'point.*', 'wallet.*')
             ->join('point', 'users.id_user', '=', 'point.id_user')
             ->join('wallet', 'users.id_user', '=', 'wallet.id_user')
-            ->where('users.id_user', '=', $id)
+            ->where('users.id_user', '=', 57)
             ->first();
 
         if (!$user) {
@@ -62,9 +61,8 @@ class UserController extends Controller
 
     public function updateProfile(Request $request)
     {
-        
+
         $data = $request->all();
-        
         $user = User::find(auth()->id());
 
         if ($user == null) {
@@ -74,7 +72,7 @@ class UserController extends Controller
         }
 
         $validate = Validator::make($data, [
-            'email' => 'nullable|email:rfc,dns',
+            'email' => 'nullable|email:rfc,dns|unique:users,email',
         ]);
 
 
@@ -102,6 +100,8 @@ class UserController extends Controller
             $uploadedImageResponse = basename($image_uploaded_path);
             // Set data foto profile baru
             $data['foto_profile'] = 'images/' . $uploadedImageResponse;
+
+         
         }
 
         $data2 = json_encode($request->all());

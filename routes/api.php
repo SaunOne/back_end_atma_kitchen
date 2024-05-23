@@ -59,10 +59,9 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
      //Produk
 
      Route::get('/produk/searchAll/{id}', [App\Http\Controllers\api\ProdukController::class, 'searchProduk']);
-     Route::get('/produk/hampers/{id}', [App\Http\Controllers\api\ProdukController::class, 'showHampersById']);
      Route::post('/produk', [App\Http\Controllers\api\ProdukController::class, 'store']);
-     Route::post('/produk/{id}', [App\Http\Controllers\api\ProdukController::class, 'update']);
-     Route::delete('/produk/{id}', [App\Http\Controllers\api\ProdukController::class, 'destroy']);
+     Route::put('/produk', [App\Http\Controllers\api\ProdukController::class, 'searchProduk']);
+     Route::delete('/produk', [App\Http\Controllers\api\ProdukController::class, 'destroy']);
 
      //produk-utama
      Route::get('/produk-utama', [App\Http\Controllers\api\ProdukUtamaController::class, 'showAll']);
@@ -144,7 +143,12 @@ Route::middleware(['auth:api', 'customer'])->group(function () {
      Route::get('/user-auth', [App\Http\Controllers\api\UserController::class, 'findByAuth']);
      Route::post('/user/update-profile', [App\Http\Controllers\api\UserController::class, 'updateProfile']);
      Route::get('/produk', [App\Http\Controllers\api\ProdukController::class, 'showAll']);
+     Route::get('/produk/{tanggal}', [App\Http\Controllers\api\ProdukController::class, 'showAllByTanggal']);
      Route::get('/produk/search/{id}', [App\Http\Controllers\api\ProdukController::class, 'showById']);
      //transaksi
      Route::get('/transaksi', [App\http\Controllers\api\TransaksiController::class, 'showByUser']);
 });
+
+Route::post('/transaksi-test', [App\Http\Controllers\api\TransaksiController::class, 'test']);
+Route::post('/cek-stok', [App\Http\Controllers\api\TransaksiController::class, 'cekStok']);
+

@@ -46,7 +46,6 @@ class BahanController extends Controller
             return response(['message' => $validate->errors()->first()], 400);
         }
 
-        
         $bahan = Bahan::create($data);
 
         return response([
