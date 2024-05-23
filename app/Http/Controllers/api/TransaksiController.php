@@ -453,7 +453,6 @@ class TransaksiController extends Controller
         $data = $request->all();
 
         $validate = Validator::make($data, [
-            "jumlah_pembayaran" => "required",
             "bukti_pembayaran" => "required",
         ]);
 
@@ -477,12 +476,10 @@ class TransaksiController extends Controller
             ]);
         }
 
-        $data['status_transaksai'] = 'Sudah Dibayar';
-        $transaksi->update([
+        $data['status_transaksi'] = 'Sudah Dibayar';
+        $transaksi->update(
             $data
-        ]);
-
-
+        );
 
         return response([
             "message" => "Transaksi Di Update Sudah bayar",
@@ -579,6 +576,7 @@ class TransaksiController extends Controller
         $data['tanggal_pelunasan'] = $transaksi['tanggal_pelunasan'];
         $data['tanggal_pengambilan'] = $transaksi['tanggal_pengambilan'];
         $data['email'] = $transaksi['email'];
+        $data['nama_lengkap'] = $transaksi['nama_lengkap'];
         $data['total_sebelum_ongkir'] = $transaksi['biaya_pengiriman'] + $transaksi['total_harga_transaksi'];
         $data['ongkir'] = $transaksi['biaya_pengiriman'];
         $data['total_setelah_ongkir'] = $transaksi['total_harga_transaksi'];
