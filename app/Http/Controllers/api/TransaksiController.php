@@ -581,12 +581,13 @@ class TransaksiController extends Controller
         $data['point_terpakai'] = $transaksi['point_terpakai'];
         $data['total_potongan'] = $transaksi['point_terpakai'] * 100;
         $data['total'] = $transaksi['total_harga_transaksi'] - $data['total_potongan'];
+        $data['point_diperoleh'] = $transaksi['point_diperoleh'];
         $data['point_customer'] = $transaksi['jumlah_point'];
         
         $data['produk'] = DetailTransaksi::select('detail_transaksi.*','p.*')
                 ->join('produk as p','p.id_produk','detail_transaksi.id_produk')
                 ->join('transaksi as t','t.id_transaksi','detail_transaksi.id_transaksi')
-                ->where('t.id_user',$id)
+                ->where('t.id_user',$id) 
                 ->get();
 
         return response([
@@ -597,6 +598,7 @@ class TransaksiController extends Controller
 
     public function hitungSisaHampers()
     {
+
     }
 
     public function hitungLimitHampers()
