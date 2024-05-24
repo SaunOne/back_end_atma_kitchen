@@ -421,22 +421,21 @@ class TransaksiController extends Controller
         }
 
         if ($data['jenis_pengiriman'] == "Atma Kitchen Delivery") {
-            $data['status_transaksi'] = "Menunggu Biaya Pengiriman";
+            $data['status_transaksi'] = "menunggu biaya pengiriman";
         } else {
-            $data['status_transaksi'] = "Menunggu Pembayaran";
+            $data['status_transaksi'] = "menunggu pembayaran";
         }
-
-
+        
+        
         $transaksi = Transaksi::create($data);
+        
+        //dapatkan jumlah yang point di dapat ketika transaksi berhasil
 
-        $year = Carbon::parse($transaksi['no_pengambilan'])->format('y'); // Mendapatkan dua digit tahun
-        $month = Carbon::parse($transaksi['no_pengambilan'])->format('m'); // Mendapatkan dua digit bulan
+        $year = Carbon::parse($transaksi['no_pengambilan'])->format('y');
+        $month = Carbon::parse($transaksi['no_pengambilan'])->format('m');
         $id_transaksi = $transaksi['id_transaksi'];
         $transaksi->no_transaksi = "{$year}.{$month}.{$id_transaksi}";
         $transaksi->save();
-        return response([
-            "no_note" => $transaksi
-        ]);
 
         foreach ($data['detail_transaksi'] as $dt) {
             DetailTransaksi::create($dt);
@@ -460,23 +459,19 @@ class TransaksiController extends Controller
             return response(['message' => $validate->errors()->first()], 400);
         }
 
-
         $transaksi = Transaksi::find($id);
 
         if (!$transaksi) {
-            return response(['message' => 'Absensi not found'], 404);
+            return response(['message' => 'transaksi not found'], 404);
         }
 
-        if ($data['jumlah_pembayaran'] < $transaksi['total_harga_transaksi']) {
-
+        if (!$transaksi['status_transaksi'] == "menunggu pembayaran") {
             return response([
-                "message" => "Pembayaran Masih Kurang",
-                "total" => $transaksi['total_harga_transaksi'],
-                "uang_anda" =>   $data['jumlah_pembayaran']
+                "message" => "status_transaksi is not valid",
             ]);
         }
 
-        $data['status_transaksi'] = 'Sudah Dibayar';
+        $data['status_transaksi'] = 'sudah dibayar';
         $transaksi->update(
             $data
         );
@@ -487,40 +482,141 @@ class TransaksiController extends Controller
         ], 200);
     }
 
-    public function konfirmasiPembayaran()
-    {
-    }
 
-    public function konfirmasiPesanan(Request $request)
+    public function konfirmasiMO(Request $request, $id)
     {
         $data = $request->all();
 
-        $transaksi = Transaksi::find($data['id_transaksi']);
+        $validate = Validator::make($data, [
+            "status" => "required", //valid atau tidak
+        ]);
+
+        if ($validate->fails()) {
+            return response(['message' => $validate->errors()->first()], 400);
+        }
+
+        $transaksi = Transaksi::find($id);
 
         if (!$transaksi) {
             return response(['message' => 'Absensi not found'], 404);
         }
 
-        $transaksi->update([
-            $data
-        ]);
-
-        if ($data['status_transaksi'] == 'Ditolak') {
+        //ketika pesanan ditolak
+        if ($data['status'] == 'ditolak') {
             //balikin stoknya
-        }
 
-        if ($transaksi['jumlah_pembayaran'] > $transaksi['total_harga_transaksi']) {
-            $transaksi['tip'] = $transaksi['jumlah_pembayaran'] - $transaksi['total_harga_transaksi'];
+            $transaksi->status_transaksi = 'ditolak';
+            $transaksi->save();
+            return response([
+                "message" => "Transaksi Di Tolak MO",
+                "data" => $transaksi
+            ], 200);
+        } else if ($data['status'] == 'diterima') {
+
+            $transaksi->status_transaksi = 'diterima';
+            $transaksi->save();
+
+            return response([
+                "message" => "Transaksi Di Diterima",
+                "data" => $transaksi
+            ], 200);
+        } else if ($data['status'] == 'diproses') {
+            if ($transaksi['jumlah_pembayaran'] > $transaksi['total_harga_transaksi']) {
+                $transaksi['tip'] = $transaksi['jumlah_pembayaran'] - $transaksi['total_harga_transaksi'];
+            }
+            return response([
+                "message" => "Transaksi Di Diproses",
+                "data" => $transaksi
+            ], 200);
         }
 
         return response([
-            "message" => "Transaksi Di Update Sudah bayar",
+            "message" => "status yang diminta tidak valid!!",
             "data" => $transaksi
-        ], 200);
+        ], 400);
     }
 
-    public function updateReadyPesanan()
+
+    public function konfirmasiAdmin(Request $request, $id)
     {
+        $data = $request->all();
+
+        $validate = Validator::make($data, [
+            "status" => "required", //valid atau tidak
+        ]);
+
+        if ($validate->fails()) {
+            return response(['message' => $validate->errors()->first()], 400);
+        }
+
+        $transaksi = Transaksi::find($id);
+
+        if (!$transaksi) {
+            return response(['message' => 'Absensi not found'], 404);
+        }
+
+        if ($data['status'] == 'diambil') {
+            if ($transaksi['jenis_pengiriman'] == 'pick up') {
+                //balikin stoknya
+                $transaksi->status_transaksi = 'di-pickup';
+            } else {
+                $transaksi->status_transaksi = 'dikirim kurir';
+            }
+            $transaksi->save();
+            return response([
+                "message" => "Pesanan Berhasil Di Pick-up/dikirim",
+                "data" => $transaksi
+            ]);
+        } else if ($data['status'] == "sudah di-pickup") {
+            $transaksi->status_transaksi = 'sudah di-pickup';
+            $transaksi->save();
+            return response([
+                "message" => "Pesanan Berhasil Di Pick-up",
+                "data" => $transaksi
+            ]);
+        } else if ($data['status'] == "pembayaran valid") {
+            $validate = Validator::make($data, [
+                "jumlah_pembayaran" => "required",
+                "status" => "required", //valid atau tidak valid
+            ]);
+            if ($validate->fails()) {
+                return response(['message' => $validate->errors()->first()], 400);
+            }
+
+            if (!$transaksi['status_transaksi'] == 'pembayaran valid') {
+
+                $transaksi->status_transaksi = 'pembayaran tidak valid';
+                return response([
+                    "message" => "pembayaran is not valid",
+                ], 400);
+            }
+
+            if ($data['jumlah_pembayaran'] < $transaksi['total_harga_transaksi']) {
+
+                return response([
+                    "message" => "Pembayaran Masih Kurang",
+                    "total" => $transaksi['total_harga_transaksi'],
+                    "uang_anda" =>   $data['jumlah_pembayaran']
+                ]);
+            }
+            $transaksi->status_transaksi = 'pembayaran valid';
+            $transaksi->jumlah_pembayaran = $data["jumlah_pembayaran"];
+            $transaksi['tanggal_pelunasan'] = now();
+            $transaksi->save();
+
+            return response([
+                "message" => "Transaksi Di Update Pembayaran Valid",
+                "data" => $transaksi
+            ], 200);
+        } else if($data['status'] == "pembayaran tidak valid"){
+            $transaksi->status_transaksi = 'pembayaran tidak valid';
+            $transaksi->save();
+
+            return response([
+                "message" => "Transaksi Di Update Pembayaran Tidak Valid",
+                "data" => $transaksi
+            ], 200);
+        }
     }
 
     public function doneTransaksi($id)
@@ -531,7 +627,7 @@ class TransaksiController extends Controller
             return response(['message' => 'Absensi not found'], 404);
         }
 
-        $data['status_transaksi'] = "Selesai";
+        $data['status_transaksi'] = "selesai";
 
         $point = Point::find($transaksi['id_user']);
 

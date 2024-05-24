@@ -147,9 +147,11 @@ Route::middleware(['auth:api', 'customer'])->group(function () {
      //transaksi
      Route::get('/transaksi', [App\http\Controllers\api\TransaksiController::class, 'showByUser']);
      Route::post('/check-out', [App\http\Controllers\api\TransaksiController::class, 'chekOut']);
-     Route::post('/bayar',[App\http\Controllers\api\TransaksiController::class, 'chekOut']);
+     Route::post('/bayar/{id}',[App\http\Controllers\api\TransaksiController::class, 'bayar']);
      Route::get('/cetak-nota/{id}',[App\http\Controllers\api\TransaksiController::class, 'cetakNota']);
-     Route::put('/bayar/{id}',[App\http\Controllers\api\TransaksiController::class, 'bayar']);
+     Route::post('/konfirmasi-admin/{id}',[App\http\Controllers\api\TransaksiController::class, 'konfirmasiAdmin']);
+     Route::post('/konfirmasi-mo/{id}',[App\http\Controllers\api\TransaksiController::class, 'konfirmasiMO']);
+     Route::post('/konfirmasi-customer/{id}',[App\http\Controllers\api\TransaksiController::class, 'konfirmasiCustomer']);
 
      //keranjang
      Route::get('/keranjang', [App\Http\Controllers\api\KeranjangController::class, 'showAll']);

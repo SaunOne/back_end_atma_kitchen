@@ -101,7 +101,6 @@ class UserController extends Controller
             // Set data foto profile baru
             $data['foto_profile'] = 'images/' . $uploadedImageResponse;
 
-         
         }
 
         $data2 = json_encode($request->all());
