@@ -8,6 +8,7 @@ use App\Models\Produk;
 use App\Models\Transaksi;
 use App\Models\Alamat;
 use App\Models\Point;
+use App\Models\User;
 use App\Models\Hampers;
 use App\Models\LimitOrder;
 use App\Models\ReadyStok;
@@ -97,7 +98,7 @@ class TransaksiController extends Controller
         }, $data['detail_transaksi']);
 
         //cek ready stoknya
-        if ($data['jenis_transaksi'] == 'ready stok') {
+        if ($data['jenis_transaksi'] == 'ready stock') {
             $data['tanggal_pesan'] = now();
 
             $dt = Produk::select()
@@ -121,7 +122,7 @@ class TransaksiController extends Controller
         }
 
         //cek limit transaksi
-        if ($data['jenis_transaksi'] == 'pre order') {
+        if ($data['jenis_transaksi'] == 'pre-order') {
             $validate = Validator::make($data, [
                 'tanggal_pesan' => 'required',
             ]);
@@ -196,7 +197,7 @@ class TransaksiController extends Controller
         $listEror = [];
 
         //kasus pre order
-        if ($data['jenis_pesanan'] == "pre order") {
+        if ($data['jenis_pesanan'] == "pre-order") {
             //kemudain lakukan perulangan untuk pengecekannya
             for ($i = 0; $i < count($produkData); $i++) {
                 if ($produkData[$i]['jenis_produk'] == 'Utama') {
@@ -218,6 +219,8 @@ class TransaksiController extends Controller
                     if ($produkUtama['jumlah_sisa'] < $jumlahProduk) {
                         $produkUtama["message"] = $produkUtama['nama_produk'] . " tersisa " . $produkUtama['jumlah_sisa'] . " " . $produkUtama['satuan'];
                         $listEror[] = $produkUtama;
+                    } else {
+                        $listEror[] = $produkUtama;
                     }
                 } else if ($produkData[$i]['jenis_produk'] == 'Titipan') {
                     //mencari produk titipannya dulu agar yang di cek adalah ready stoknya saat terjadi pesanan pre order namun produk titipan
@@ -236,6 +239,8 @@ class TransaksiController extends Controller
 
                     if ($produkTitipan['jumlah_sisa'] < $jumlahProduk) {
                         $produkTitipan["message"] = $produkTitipan['nama_produk'] . " tersisa " . $produkTitipan['jumlah_sisa'] . " " . $produkTitipan['satuan'];
+                        $listEror[] = $produkTitipan;
+                    }else {
                         $listEror[] = $produkTitipan;
                     }
                 } else if ($produkData[$i]['jenis_produk'] == 'Hampers') {
@@ -279,6 +284,8 @@ class TransaksiController extends Controller
                             $temp["message"] = $temp['nama_produk'] . " tersisa " . $minJumlahSisa . " " . $temp['satuan'];
                             $listEror[] = $temp;
                             break;
+                        }else {
+                            $listEror[] = $produkHampers;
                         }
                     }
                 }
@@ -288,7 +295,7 @@ class TransaksiController extends Controller
                     "message" => $listEror
                 ], 400);
             }
-        } else if ($data['jenis_pesanan'] == "ready stok") {
+        } else if ($data['jenis_pesanan'] == "ready stock") {
             //kasus ready stok
 
             //pisah agar ketika ada seesuatu yang khusus dalam pembelian setipa produk bisa aman
@@ -314,6 +321,8 @@ class TransaksiController extends Controller
                     if ($produkUtama['jumlah_stok'] < $jumlahProduk) {
                         $produkUtama["message"] = $produkUtama['nama_produk'] . " tersisa " . $produkUtama['jumlah_stok'] . " " . $produkUtama['satuan'];
                         $listEror[] = $produkUtama;
+                    }else {
+                        $listEror[] = $produkUtama;
                     }
                 } else if ($produkData[$i]['jenis_produk'] == 'Titipan') {
                     $produkTitipan = Produk::select('produk.*', 'rs.*')
@@ -331,6 +340,8 @@ class TransaksiController extends Controller
 
                     if ($produkTitipan['jumlah_stok'] < $jumlahProduk) {
                         $produkTitipan["message"] = $produkTitipan['nama_produk'] . " tersisa " . $produkTitipan['jumlah_stok'] . " " . $produkTitipan['satuan'];
+                        $listEror[] = $produkTitipan;
+                    }else {
                         $listEror[] = $produkTitipan;
                     }
                 } else if ($produkData[$i]['jenis_produk'] == 'Hampers') {
@@ -374,6 +385,8 @@ class TransaksiController extends Controller
                             $temp["message"] = $temp['nama_produk'] . " tersisa " . $minJumlahStok . " " . $temp['satuan'];
                             $listEror[] = $temp;
                             break;
+                        }else {
+                            $listEror[] = $produkHampers;
                         }
                     }
                 }
@@ -390,7 +403,9 @@ class TransaksiController extends Controller
         }
 
         return response([
-            "meesage" => "Stok Produk Tersedia Semua"
+            "meesage" => "Stok Produk Tersedia Semua",
+            "data" => $data,
+            "status" => true
         ], 200);
     }
 
@@ -416,27 +431,54 @@ class TransaksiController extends Controller
             return response(['message' => $validate->errors()->first()], 400);
         }
 
-        if ($data['jenis_pesanan'] == "ready stok") {
+        if ($data['jenis_pesanan'] == "ready stock") {
             $data['tanggal_pengambilan'] = now();
         }
 
         if ($data['jenis_pengiriman'] == "Atma Kitchen Delivery") {
-            $data['status_transaksi'] = "Menunggu Biaya Pengiriman";
+            $data['status_transaksi'] = "menunggu biaya pengiriman";
         } else {
-            $data['status_transaksi'] = "Menunggu Pembayaran";
+            $data['status_transaksi'] = "menunggu pembayaran";
         }
 
 
         $transaksi = Transaksi::create($data);
 
-        $year = Carbon::parse($transaksi['no_pengambilan'])->format('y'); // Mendapatkan dua digit tahun
-        $month = Carbon::parse($transaksi['no_pengambilan'])->format('m'); // Mendapatkan dua digit bulan
+        //dapatkan jumlah yang point di dapat ketika transaksi berhasil
+
+        $year = Carbon::parse($transaksi['no_pengambilan'])->format('y');
+        $month = Carbon::parse($transaksi['no_pengambilan'])->format('m');
+
+        
+        if($transaksi['total_harga_transaksi'] >= 1000000){
+            $sisa_uang = $transaksi['total_harga_transaksi'] - ($transaksi['total_harga_transaksi'] % 1000000);
+            $point = ($sisa_uang / 1000000) * 200;
+        } else if($transaksi['total_harga_transaksi'] >= 500000){
+            $sisa_uang = $transaksi['total_harga_transaksi'] - ($transaksi['total_harga_transaksi'] % 500000);
+            $point = ($sisa_uang / 500000) * 75;
+        } else if($transaksi['total_harga_transaksi'] >= 100000){
+            $sisa_uang = $transaksi['total_harga_transaksi'] - ($transaksi['total_harga_transaksi'] % 100000);
+            $point = ($sisa_uang / 100000) * 15;
+        } else {
+            $sisa_uang = $transaksi['total_harga_transaksi'] - ($transaksi['total_harga_transaksi'] % 10000);
+            $point = ($sisa_uang / 10000) * 1;
+        }   
+
+        $user = User::select('tanggal_lahir')->where('id_user',$data['id_user'])->first();
+
+        $tanggal_lahir = $user['$tanggal_lahir']->format('m-d');
+
+        return response([
+            "tanggal" => $tanggal_lahir
+        ]);
+   
+       
+        
+
         $id_transaksi = $transaksi['id_transaksi'];
         $transaksi->no_transaksi = "{$year}.{$month}.{$id_transaksi}";
+        $transaksi->point_diperoleh = $point;
         $transaksi->save();
-        return response([
-            "no_note" => $transaksi
-        ]);
 
         foreach ($data['detail_transaksi'] as $dt) {
             DetailTransaksi::create($dt);
@@ -460,23 +502,19 @@ class TransaksiController extends Controller
             return response(['message' => $validate->errors()->first()], 400);
         }
 
-
         $transaksi = Transaksi::find($id);
 
         if (!$transaksi) {
-            return response(['message' => 'Absensi not found'], 404);
+            return response(['message' => 'transaksi not found'], 404);
         }
 
-        if ($data['jumlah_pembayaran'] < $transaksi['total_harga_transaksi']) {
-
+        if (!$transaksi['status_transaksi'] == "menunggu pembayaran") {
             return response([
-                "message" => "Pembayaran Masih Kurang",
-                "total" => $transaksi['total_harga_transaksi'],
-                "uang_anda" =>   $data['jumlah_pembayaran']
+                "message" => "status_transaksi is not valid",
             ]);
         }
 
-        $data['status_transaksi'] = 'Sudah Dibayar';
+        $data['status_transaksi'] = 'sudah dibayar';
         $transaksi->update(
             $data
         );
@@ -487,40 +525,163 @@ class TransaksiController extends Controller
         ], 200);
     }
 
-    public function konfirmasiPembayaran()
-    {
-    }
 
-    public function konfirmasiPesanan(Request $request)
+    public function konfirmasiMO(Request $request, $id)
     {
         $data = $request->all();
 
-        $transaksi = Transaksi::find($data['id_transaksi']);
+        $validate = Validator::make($data, [
+            "status" => "required", //valid atau tidak
+        ]);
+
+        if ($validate->fails()) {
+            return response(['message' => $validate->errors()->first()], 400);
+        }
+
+        $transaksi = Transaksi::find($id);
 
         if (!$transaksi) {
             return response(['message' => 'Absensi not found'], 404);
         }
 
-        $transaksi->update([
-            $data
-        ]);
-
-        if ($data['status_transaksi'] == 'Ditolak') {
+        //ketika pesanan ditolak
+        if ($data['status'] == 'ditolak') {
             //balikin stoknya
-        }
 
-        if ($transaksi['jumlah_pembayaran'] > $transaksi['total_harga_transaksi']) {
-            $transaksi['tip'] = $transaksi['jumlah_pembayaran'] - $transaksi['total_harga_transaksi'];
+            $transaksi->status_transaksi = 'ditolak';
+            $transaksi->save();
+            return response([
+                "message" => "Transaksi Di Tolak MO",
+                "data" => $transaksi
+            ], 200);
+        } else if ($data['status'] == 'diterima') {
+
+            $transaksi->status_transaksi = 'diterima';
+            $transaksi->save();
+
+            // if($data['jenis_pesanan'] == 'ready stok'){
+            //     if($['jenis'])
+            // }
+
+            return response([
+                "message" => "Transaksi Di Diterima",
+                "data" => $transaksi
+            ], 200);
+        } else if ($data['status'] == 'diproses') {
+            if ($transaksi['jumlah_pembayaran'] > $transaksi['total_harga_transaksi']) {
+                $transaksi['tip'] = $transaksi['jumlah_pembayaran'] - $transaksi['total_harga_transaksi'];
+            }
+            $transaksi->status_transaksi = 'diproses';
+            $transaksi->save();
+            return response([
+                "message" => "Transaksi Di Diproses",
+                "data" => $transaksi
+            ], 200);
         }
 
         return response([
-            "message" => "Transaksi Di Update Sudah bayar",
+            "message" => "status yang diminta tidak valid!!",
             "data" => $transaksi
-        ], 200);
+        ], 400);
     }
 
-    public function updateReadyPesanan()
+
+    public function konfirmasiAdmin(Request $request, $id)
     {
+        $data = $request->all();
+
+        $validate = Validator::make($data, [
+            "status" => "required", //valid atau tidak
+        ]);
+
+        if ($validate->fails()) {
+            return response(['message' => $validate->errors()->first()], 400);
+        }
+
+        $transaksi = Transaksi::find($id);
+
+        if (!$transaksi) {
+            return response(['message' => 'Absensi not found'], 404);
+        }
+
+        if ($data['status'] == 'diambil') {
+            if ($transaksi['jenis_pengiriman'] == 'pick up') {
+                //balikin stoknya
+                $transaksi->status_transaksi = 'di-pickup';
+            } else {
+                $transaksi->status_transaksi = 'dikirim kurir';
+            }
+            $transaksi->save();
+            return response([
+                "message" => "Pesanan Berhasil Di Pick-up/dikirim",
+                "data" => $transaksi
+            ]);
+        } else if ($data['status'] == "sudah di-pickup") {
+            $transaksi->status_transaksi = 'sudah di-pickup';
+            $transaksi->save();
+            return response([
+                "message" => "Pesanan Berhasil Di Pick-up",
+                "data" => $transaksi
+            ]);
+        } else if ($data['status'] == "pembayaran valid") {
+            $validate = Validator::make($data, [
+                "jumlah_pembayaran" => "required",
+                "status" => "required", //valid atau tidak valid
+            ]);
+            if ($validate->fails()) {
+                return response(['message' => $validate->errors()->first()], 400);
+            }
+
+            if (!($transaksi['status_transaksi'] == 'sudah dibayar')) {
+
+                return response([
+                    "message" => "pembayaran is not valid",
+                ], 400);
+            }
+
+            if ($data['jumlah_pembayaran'] < $transaksi['total_harga_transaksi']) {
+
+                return response([
+                    "message" => "Pembayaran Masih Kurang",
+                    "total" => $transaksi['total_harga_transaksi'],
+                    "uang_anda" =>   $data['jumlah_pembayaran']
+                ]);
+            }
+            $transaksi->status_transaksi = 'pembayaran valid';
+            $transaksi->jumlah_pembayaran = $data["jumlah_pembayaran"];
+            $transaksi['tanggal_pelunasan'] = now();
+            $transaksi->save();
+
+            return response([
+                "message" => "Transaksi Di Update Pembayaran Valid",
+                "data" => $transaksi
+            ], 200);
+        } else if ($data['status'] == "pembayaran tidak valid") {
+            $transaksi->status_transaksi = 'pembayaran tidak valid';
+            $transaksi->save();
+
+            return response([
+                "message" => "Transaksi Di Update Pembayaran Tidak Valid",
+                "data" => $transaksi
+            ], 200);
+        } else if($data['status'] == "input biaya pengiriman"){
+            $validate = Validator::make($data, [
+                "radius" => "required",
+            ]);
+            if ($validate->fails()) {
+                return response(['message' => $validate->errors()->first()], 400);
+            }
+
+            $transaksi->status_transaksi = 'menunggu pembayaran';
+            $transaksi->biaya_pengiriman = $data['radius'] * 10000;// 10k per km
+            $transaksi->total_harga_transaksi+=$transaksi->biaya_pengiriman;
+            $transaksi->save();
+
+            return response([
+                "message" => "Transaksi Di Update Pembayaran Tidak Valid",
+                "data" => $transaksi
+            ], 200);
+        }
     }
 
     public function doneTransaksi($id)
@@ -531,7 +692,7 @@ class TransaksiController extends Controller
             return response(['message' => 'Absensi not found'], 404);
         }
 
-        $data['status_transaksi'] = "Selesai";
+        $data['status_transaksi'] = "selesai";
 
         $point = Point::find($transaksi['id_user']);
 

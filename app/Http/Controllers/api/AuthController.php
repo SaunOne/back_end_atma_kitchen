@@ -126,7 +126,10 @@ class AuthController extends Controller
         if ($validate->fails()) {
             return response(['message' => $validate->errors()->first()], 400);
         }
-
+        // $user = User::find(102);
+        // return response([
+        //     "message" => $user 
+        // ]); 
         if (!Auth::attempt($loginData)) {
             return response(['message' => 'Invalid email & password  match'], 401);
         }

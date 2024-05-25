@@ -147,21 +147,25 @@ Route::middleware(['auth:api', 'customer'])->group(function () {
      //transaksi
      Route::get('/transaksi', [App\http\Controllers\api\TransaksiController::class, 'showByUser']);
      Route::post('/check-out', [App\http\Controllers\api\TransaksiController::class, 'chekOut']);
-     Route::post('/bayar',[App\http\Controllers\api\TransaksiController::class, 'chekOut']);
+     Route::post('/bayar/{id}',[App\http\Controllers\api\TransaksiController::class, 'bayar']);
      Route::get('/cetak-nota/{id}',[App\http\Controllers\api\TransaksiController::class, 'cetakNota']);
-     Route::put('/bayar/{id}',[App\http\Controllers\api\TransaksiController::class, 'bayar']);
+     Route::post('/konfirmasi-admin/{id}',[App\http\Controllers\api\TransaksiController::class, 'konfirmasiAdmin']);
+     Route::post('/konfirmasi-mo/{id}',[App\http\Controllers\api\TransaksiController::class, 'konfirmasiMO']);
+     Route::post('/konfirmasi-customer/{id}',[App\http\Controllers\api\TransaksiController::class, 'konfirmasiCustomer']);
+     Route::post('/cek-stok', [App\Http\Controllers\api\TransaksiController::class, 'cekStok']);
 
      //keranjang
      Route::get('/keranjang', [App\Http\Controllers\api\KeranjangController::class, 'showAll']);
      Route::get('/keranjang/{id}', [App\Http\Controllers\api\KeranjangController::class, 'showById']);
      Route::get('/keranjang-user', [App\Http\Controllers\api\KeranjangController::class, 'showByUser']);
      Route::post('/keranjang', [App\Http\Controllers\api\KeranjangController::class, 'store']);
+     Route::post('/keranjang-all', [App\Http\Controllers\api\KeranjangController::class, 'storeAll']);
      Route::put('/keranjang/{id}', [App\Http\Controllers\api\KeranjangController::class, 'update']);
      Route::delete('/keranjang/{id}', [App\Http\Controllers\api\KeranjangController::class, 'destroy']);
 }); 
 
 Route::post('/transaksi-test', [App\Http\Controllers\api\TransaksiController::class, 'test']);
-Route::post('/cek-stok', [App\Http\Controllers\api\TransaksiController::class, 'cekStok']);
+
 Route::get('/produk', [App\Http\Controllers\api\ProdukController::class, 'showAll']);
 Route::get('/produk/{tanggal}', [App\Http\Controllers\api\ProdukController::class, 'showAllByTanggal']);
 

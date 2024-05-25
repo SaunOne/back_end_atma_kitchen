@@ -106,7 +106,7 @@ class ProdukController extends Controller
             ->join('produk_utama as pu', 'pu.id_produk', '=', 'produk.id_produk')
             ->join('limit_order as lo', 'lo.id_produk', '=', 'pu.id_produk')
             ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'produk.id_stok_produk')
-            ->where('lo.tanggal', '2024-05-19')
+            ->where('lo.tanggal', $tanggal)
             ->get();
 
         $listProduk = $produkUtama;
@@ -126,9 +126,10 @@ class ProdukController extends Controller
             $products = DB::table('detail_hampers as dh')
                 ->join('hampers as h', 'dh.id_hampers', '=', 'h.id_produk')
                 ->join('produk_utama as pu', 'pu.id_produk', '=', 'dh.id_produk')
+                ->join('limit_order as lo', 'lo.id_produk', '=', 'pu.id_produk')
                 ->join('produk as p', 'p.id_produk', '=', 'pu.id_produk')
                 ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'p.id_stok_produk')
-                ->select('p.*', 'rs.*','pu.*')
+                ->select('p.*', 'rs.*','pu.*','lo.*')
                 ->where('h.id_produk', '=', $produk->id_produk)
                 ->get();
             
@@ -138,7 +139,7 @@ class ProdukController extends Controller
             ->join('produk_utama as pu', 'pu.id_produk', '=', 'dt.id_produk')
             ->join('limit_order as lo', 'lo.id_produk', '=', 'pu.id_produk')
             ->where('dt.id_hampers', $produk['id_produk'])
-            ->where('lo.tanggal', '2024-5-19') //nanti inget ganti ke now()
+            ->where('lo.tanggal', '2024-5-19') //nanti inget ganti ke $tanggal
             ->min('lo.jumlah_sisa');
 
             $produk->jumlah_stok = DB::table('detail_hampers as dt')
