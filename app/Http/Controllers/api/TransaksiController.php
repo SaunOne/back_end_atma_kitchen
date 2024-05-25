@@ -541,6 +541,8 @@ class TransaksiController extends Controller
             if ($transaksi['jumlah_pembayaran'] > $transaksi['total_harga_transaksi']) {
                 $transaksi['tip'] = $transaksi['jumlah_pembayaran'] - $transaksi['total_harga_transaksi'];
             }
+            $transaksi->status_transaksi = 'diproses';
+            $transaksi->save();
             return response([
                 "message" => "Transaksi Di Diproses",
                 "data" => $transaksi
@@ -600,9 +602,8 @@ class TransaksiController extends Controller
                 return response(['message' => $validate->errors()->first()], 400);
             }
 
-            if (!$transaksi['status_transaksi'] == 'pembayaran valid') {
+            if (!($transaksi['status_transaksi'] == 'sudah dibayar')) {
 
-                $transaksi->status_transaksi = 'pembayaran tidak valid';
                 return response([
                     "message" => "pembayaran is not valid",
                 ], 400);
@@ -627,6 +628,23 @@ class TransaksiController extends Controller
             ], 200);
         } else if ($data['status'] == "pembayaran tidak valid") {
             $transaksi->status_transaksi = 'pembayaran tidak valid';
+            $transaksi->save();
+
+            return response([
+                "message" => "Transaksi Di Update Pembayaran Tidak Valid",
+                "data" => $transaksi
+            ], 200);
+        } else if($data['status'] == "input biaya pengiriman"){
+            $validate = Validator::make($data, [
+                "radius" => "required",
+            ]);
+            if ($validate->fails()) {
+                return response(['message' => $validate->errors()->first()], 400);
+            }
+
+            $transaksi->status_transaksi = 'menunggu pembayaran';
+            $transaksi->biaya_pengiriman = $data['radius'] * 10000;// 10k per km
+            $transaksi->total_harga_transaksi+=$transaksi->biaya_pengiriman;
             $transaksi->save();
 
             return response([
