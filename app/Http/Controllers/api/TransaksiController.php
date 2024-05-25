@@ -286,8 +286,9 @@ class TransaksiController extends Controller
             }
             if (!($listEror == [])) {
                 return response([
-                    "message" => $listEror
-                ], 400);
+                    "message" => $listEror,
+                    "status" => false,
+                ]);
             }
         } else if ($data['jenis_pesanan'] == "ready stock") {
             //kasus ready stok
@@ -381,13 +382,15 @@ class TransaksiController extends Controller
             }
             if (!($listEror == [])) {
                 return response([
-                    "message" => $listEror
-                ], 400);
+                    "message" => $listEror,
+                    "status" => false,
+                ]);
             }
         } else {
             return response([
-                "message" => "jenis pesanan tidak valid!!"
-            ], 400);
+                "message" => "jenis pesanan tidak valid!!",
+                "status" => false,
+            ]);
         }
 
         return response([
