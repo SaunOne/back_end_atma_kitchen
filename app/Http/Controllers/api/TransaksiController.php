@@ -219,6 +219,8 @@ class TransaksiController extends Controller
                     if ($produkUtama['jumlah_sisa'] < $jumlahProduk) {
                         $produkUtama["message"] = $produkUtama['nama_produk'] . " tersisa " . $produkUtama['jumlah_sisa'] . " " . $produkUtama['satuan'];
                         $listEror[] = $produkUtama;
+                    } else {
+                        $listEror[] = $produkUtama;
                     }
                 } else if ($produkData[$i]['jenis_produk'] == 'Titipan') {
                     //mencari produk titipannya dulu agar yang di cek adalah ready stoknya saat terjadi pesanan pre order namun produk titipan
@@ -237,6 +239,8 @@ class TransaksiController extends Controller
 
                     if ($produkTitipan['jumlah_sisa'] < $jumlahProduk) {
                         $produkTitipan["message"] = $produkTitipan['nama_produk'] . " tersisa " . $produkTitipan['jumlah_sisa'] . " " . $produkTitipan['satuan'];
+                        $listEror[] = $produkTitipan;
+                    }else {
                         $listEror[] = $produkTitipan;
                     }
                 } else if ($produkData[$i]['jenis_produk'] == 'Hampers') {
@@ -280,6 +284,8 @@ class TransaksiController extends Controller
                             $temp["message"] = $temp['nama_produk'] . " tersisa " . $minJumlahSisa . " " . $temp['satuan'];
                             $listEror[] = $temp;
                             break;
+                        }else {
+                            $listEror[] = $produkHampers;
                         }
                     }
                 }
@@ -316,6 +322,8 @@ class TransaksiController extends Controller
                     if ($produkUtama['jumlah_stok'] < $jumlahProduk) {
                         $produkUtama["message"] = $produkUtama['nama_produk'] . " tersisa " . $produkUtama['jumlah_stok'] . " " . $produkUtama['satuan'];
                         $listEror[] = $produkUtama;
+                    }else {
+                        $listEror[] = $produkUtama;
                     }
                 } else if ($produkData[$i]['jenis_produk'] == 'Titipan') {
                     $produkTitipan = Produk::select('produk.*', 'rs.*')
@@ -333,6 +341,8 @@ class TransaksiController extends Controller
 
                     if ($produkTitipan['jumlah_stok'] < $jumlahProduk) {
                         $produkTitipan["message"] = $produkTitipan['nama_produk'] . " tersisa " . $produkTitipan['jumlah_stok'] . " " . $produkTitipan['satuan'];
+                        $listEror[] = $produkTitipan;
+                    }else {
                         $listEror[] = $produkTitipan;
                     }
                 } else if ($produkData[$i]['jenis_produk'] == 'Hampers') {
@@ -376,6 +386,8 @@ class TransaksiController extends Controller
                             $temp["message"] = $temp['nama_produk'] . " tersisa " . $minJumlahStok . " " . $temp['satuan'];
                             $listEror[] = $temp;
                             break;
+                        }else {
+                            $listEror[] = $produkHampers;
                         }
                     }
                 }
@@ -455,10 +467,13 @@ class TransaksiController extends Controller
             $point = ($sisa_uang / 10000) * 1;
         }   
 
-        // $tanggal_lahir = User::select('tanggal_lahir')->where('id_user',$data['id_user']);
+        $user = User::select('tanggal_lahir')->where('id_user',$data['id_user'])->first();
 
-        // $tanggal_lahir = $tanggal_lahir->format('m-d');
+        $tanggal_lahir = $user['$tanggal_lahir']->format('m-d');
 
+        return response([
+            "tanggal" => $tanggal_lahir
+        ]);
    
        
         
