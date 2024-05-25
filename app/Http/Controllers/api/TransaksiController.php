@@ -307,10 +307,9 @@ class TransaksiController extends Controller
             }
             if (!($listEror == [])) {
                 return response([
-                    "message" => "stok atau limit harian tidak memenuhi",
-                    "detail_transakasi" => $listEror,
+                    "message" => $listEror,
                     "status" => false,
-                ], 400);
+                ]);
             }
         } else if ($data['jenis_pesanan'] == "ready stock") {
             //kasus ready stok
@@ -433,15 +432,15 @@ class TransaksiController extends Controller
             }
             if (!($listEror == [])) {
                 return response([
-                    "message" => "stok atau limit harian tidak memenuhi",
-                    "detail_transakasi" => $listEror,
+                    "message" => $listEror,
                     "status" => false,
-                ], 400);
+                ]);
             }
         } else {
             return response([
-                "message" => "jenis pesanan tidak valid!!"
-            ], 400);
+                "message" => "jenis pesanan tidak valid!!",
+                "status" => false,
+            ]);
         }
 
         return response([
