@@ -66,31 +66,31 @@ Route::middleware(['auth:api','admin'])->group(function(){
      Route::post('/resep/produk',[App\Http\Controllers\api\ResepController::class,'storeAll']);
      Route::put('/resep/{id}',[App\Http\Controllers\api\ResepController::class,'storeByProduk']);
      Route::delete('/resep/{id}',[App\Http\Controllers\api\ResepController::class,'destroy']);
- 
+
      //kelola bahan baku
      Route::get('/bahan',[App\Http\Controllers\api\BahanController::class,'showAll']);
      Route::get('/bahan/{id}',[App\Http\Controllers\api\BahanController::class,'showById']); 
      Route::post('/bahan',[App\Http\Controllers\api\BahanController::class,'store']);
      Route::put('/bahan/{id}',[App\Http\Controllers\api\BahanController::class,'update']);
      Route::delete('/bahan/{id}',[App\Http\Controllers\api\BahanController::class,'destroy']);
- 
+
      //kelola hampers
      Route::get('/hampers',[App\Http\Controllers\api\HampersController::class,'showAll']);
      Route::get('/hampers/{id}',[App\Http\Controllers\api\HampersController::class,'showById']); 
      Route::post('/hampers',[App\Http\Controllers\api\HampersController::class,'store']);
      Route::put('/hampers/{id}',[App\Http\Controllers\api\HampersController::class,'update']);
      Route::delete('/hampers/{id}',[App\Http\Controllers\api\HampersController::class,'destroy']);
- 
+
      //penitip
      Route::get('/penitip',[App\Http\Controllers\api\PegawaiController::class,'showAll']);
      Route::get('/penitip/{id}',[App\Http\Controllers\api\PegawaiController::class,'showById']); 
      Route::post('/penitip',[App\Http\Controllers\api\PegawaiController::class,'store']);
      Route::put('/penitip/{id}',[App\Http\Controllers\api\PegawaiController::class,'update']);
      Route::delete('/penitip/{id}',[App\Http\Controllers\api\PegawaiController::class,'destroy']);
- 
+
      //Produk Utama
      
-    
+
 
 });
 
