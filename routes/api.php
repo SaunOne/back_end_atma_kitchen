@@ -152,6 +152,7 @@ Route::middleware(['auth:api', 'customer'])->group(function () {
      Route::post('/konfirmasi-admin/{id}',[App\http\Controllers\api\TransaksiController::class, 'konfirmasiAdmin']);
      Route::post('/konfirmasi-mo/{id}',[App\http\Controllers\api\TransaksiController::class, 'konfirmasiMO']);
      Route::post('/konfirmasi-customer/{id}',[App\http\Controllers\api\TransaksiController::class, 'konfirmasiCustomer']);
+     Route::post('/cek-stok', [App\Http\Controllers\api\TransaksiController::class, 'cekStok']);
 
      //keranjang
      Route::get('/keranjang', [App\Http\Controllers\api\KeranjangController::class, 'showAll']);
@@ -163,7 +164,7 @@ Route::middleware(['auth:api', 'customer'])->group(function () {
 }); 
 
 Route::post('/transaksi-test', [App\Http\Controllers\api\TransaksiController::class, 'test']);
-Route::post('/cek-stok', [App\Http\Controllers\api\TransaksiController::class, 'cekStok']);
+
 Route::get('/produk', [App\Http\Controllers\api\ProdukController::class, 'showAll']);
 Route::get('/produk/{tanggal}', [App\Http\Controllers\api\ProdukController::class, 'showAllByTanggal']);
 

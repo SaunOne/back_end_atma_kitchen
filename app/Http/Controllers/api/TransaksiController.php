@@ -425,16 +425,33 @@ class TransaksiController extends Controller
         } else {
             $data['status_transaksi'] = "menunggu pembayaran";
         }
-        
-        
+
+
         $transaksi = Transaksi::create($data);
-        
+
         //dapatkan jumlah yang point di dapat ketika transaksi berhasil
 
         $year = Carbon::parse($transaksi['no_pengambilan'])->format('y');
         $month = Carbon::parse($transaksi['no_pengambilan'])->format('m');
+
+        
+        if($transaksi['total_harga_transaksi'] >= 1000000){
+            $sisa_uang = $transaksi['total_harga_transaksi'] - ($transaksi['total_harga_transaksi'] % 1000000);
+            $point = ($sisa_uang / 1000000) * 200;
+        } else if($transaksi['total_harga_transaksi'] >= 500000){
+            $sisa_uang = $transaksi['total_harga_transaksi'] - ($transaksi['total_harga_transaksi'] % 500000);
+            $point = ($sisa_uang / 500000) * 75;
+        } else if($transaksi['total_harga_transaksi'] >= 100000){
+            $sisa_uang = $transaksi['total_harga_transaksi'] - ($transaksi['total_harga_transaksi'] % 100000);
+            $point = ($sisa_uang / 100000) * 15;
+        } else {
+            $sisa_uang = $transaksi['total_harga_transaksi'] - ($transaksi['total_harga_transaksi'] % 10000);
+            $point = ($sisa_uang / 10000) * 1;
+        }
+
         $id_transaksi = $transaksi['id_transaksi'];
         $transaksi->no_transaksi = "{$year}.{$month}.{$id_transaksi}";
+        $transaksi->point_diperoleh = $point;
         $transaksi->save();
 
         foreach ($data['detail_transaksi'] as $dt) {
@@ -608,7 +625,7 @@ class TransaksiController extends Controller
                 "message" => "Transaksi Di Update Pembayaran Valid",
                 "data" => $transaksi
             ], 200);
-        } else if($data['status'] == "pembayaran tidak valid"){
+        } else if ($data['status'] == "pembayaran tidak valid") {
             $transaksi->status_transaksi = 'pembayaran tidak valid';
             $transaksi->save();
 
