@@ -159,6 +159,7 @@ Route::middleware(['auth:api', 'customer'])->group(function () {
      Route::get('/keranjang/{id}', [App\Http\Controllers\api\KeranjangController::class, 'showById']);
      Route::get('/keranjang-user', [App\Http\Controllers\api\KeranjangController::class, 'showByUser']);
      Route::post('/keranjang', [App\Http\Controllers\api\KeranjangController::class, 'store']);
+     Route::post('/keranjang-all', [App\Http\Controllers\api\KeranjangController::class, 'storeAll']);
      Route::put('/keranjang/{id}', [App\Http\Controllers\api\KeranjangController::class, 'update']);
      Route::delete('/keranjang/{id}', [App\Http\Controllers\api\KeranjangController::class, 'destroy']);
 }); 

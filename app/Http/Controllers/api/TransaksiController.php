@@ -8,6 +8,7 @@ use App\Models\Produk;
 use App\Models\Transaksi;
 use App\Models\Alamat;
 use App\Models\Point;
+use App\Models\User;
 use App\Models\Hampers;
 use App\Models\LimitOrder;
 use App\Models\ReadyStok;
@@ -97,7 +98,7 @@ class TransaksiController extends Controller
         }, $data['detail_transaksi']);
 
         //cek ready stoknya
-        if ($data['jenis_transaksi'] == 'ready stok') {
+        if ($data['jenis_transaksi'] == 'ready stock') {
             $data['tanggal_pesan'] = now();
 
             $dt = Produk::select()
@@ -121,7 +122,7 @@ class TransaksiController extends Controller
         }
 
         //cek limit transaksi
-        if ($data['jenis_transaksi'] == 'pre order') {
+        if ($data['jenis_transaksi'] == 'pre-order') {
             $validate = Validator::make($data, [
                 'tanggal_pesan' => 'required',
             ]);
@@ -196,7 +197,7 @@ class TransaksiController extends Controller
         $listEror = [];
 
         //kasus pre order
-        if ($data['jenis_pesanan'] == "pre order") {
+        if ($data['jenis_pesanan'] == "pre-order") {
             //kemudain lakukan perulangan untuk pengecekannya
             for ($i = 0; $i < count($produkData); $i++) {
                 if ($produkData[$i]['jenis_produk'] == 'Utama') {
@@ -288,7 +289,7 @@ class TransaksiController extends Controller
                     "message" => $listEror
                 ], 400);
             }
-        } else if ($data['jenis_pesanan'] == "ready stok") {
+        } else if ($data['jenis_pesanan'] == "ready stock") {
             //kasus ready stok
 
             //pisah agar ketika ada seesuatu yang khusus dalam pembelian setipa produk bisa aman
@@ -390,7 +391,9 @@ class TransaksiController extends Controller
         }
 
         return response([
-            "meesage" => "Stok Produk Tersedia Semua"
+            "meesage" => "Stok Produk Tersedia Semua",
+            "data" => $data,
+            "status" => true
         ], 200);
     }
 
@@ -416,7 +419,7 @@ class TransaksiController extends Controller
             return response(['message' => $validate->errors()->first()], 400);
         }
 
-        if ($data['jenis_pesanan'] == "ready stok") {
+        if ($data['jenis_pesanan'] == "ready stock") {
             $data['tanggal_pengambilan'] = now();
         }
 
@@ -447,7 +450,15 @@ class TransaksiController extends Controller
         } else {
             $sisa_uang = $transaksi['total_harga_transaksi'] - ($transaksi['total_harga_transaksi'] % 10000);
             $point = ($sisa_uang / 10000) * 1;
-        }
+        }   
+
+        // $tanggal_lahir = User::select('tanggal_lahir')->where('id_user',$data['id_user']);
+
+        // $tanggal_lahir = $tanggal_lahir->format('m-d');
+
+   
+       
+        
 
         $id_transaksi = $transaksi['id_transaksi'];
         $transaksi->no_transaksi = "{$year}.{$month}.{$id_transaksi}";
@@ -532,6 +543,10 @@ class TransaksiController extends Controller
 
             $transaksi->status_transaksi = 'diterima';
             $transaksi->save();
+
+            // if($data['jenis_pesanan'] == 'ready stok'){
+            //     if($['jenis'])
+            // }
 
             return response([
                 "message" => "Transaksi Di Diterima",

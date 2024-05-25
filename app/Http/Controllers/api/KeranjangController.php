@@ -57,6 +57,18 @@ class KeranjangController extends Controller
         ]);
     }
 
+    public function createAll(Request $request){
+        $data = $request->all();
+
+        $validate = Validator::make($data, [
+            'detail_keranjang' => 'required', // isi arraynya
+        ]);
+
+        // $id_user = Auth::user()->id_user();
+
+        
+    }
+
     public function keranjang(Request $request){
         $data = $request->all();
 
@@ -76,6 +88,9 @@ class KeranjangController extends Controller
             "message" => "update successfully",
             "data" => $keranjang
         ]);
+
+
+
     }
 
     public function destroy($id)
