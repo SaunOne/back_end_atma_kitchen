@@ -33,14 +33,14 @@ class UserController extends Controller
         $user = User::select('users.*', 'point.*', 'wallet.*')
             ->join('point', 'users.id_user', '=', 'point.id_user')
             ->join('wallet', 'users.id_user', '=', 'wallet.id_user')
-            ->where('users.id_user', '=', 57)
+            ->where('users.id_user', '=', $id)
             ->first();
 
         if (!$user) {
             return response(['message' => 'Users not found'], 404);
         }
 
-        $user->alamat = Alamat::select()->where('id_user', '=', 57)->get();
+        $user->alamat = Alamat::select()->where('id_user', '=', $id)->get();
 
         $user->pesanan = Transaksi::select()->where('id_user', '=', $user['id_user'])->get();
 
@@ -72,7 +72,7 @@ class UserController extends Controller
         }
 
         $validate = Validator::make($data, [
-            'email' => 'nullable|email:rfc,dns|unique:users,email',
+            'email' => 'nullable|email:rfc,dns',
         ]);
 
 
