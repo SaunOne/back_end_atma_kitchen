@@ -413,7 +413,7 @@ class TransaksiController extends Controller
                             ->orderBy('rs.jumlah_stok', 'asc')
                             ->select('p.quantity')
                             ->first();
-                        
+
                         $minJumlahStok = ($minJumlahStok / $quantity->quantity);
                         $temp->jumlah_stok = $minJumlahStok;
                         if ($minJumlahStok < $jumlahProduk) {
@@ -532,7 +532,7 @@ class TransaksiController extends Controller
             if ($data['jenis_pesanan'] == "ready stock") {
                 if ($produk['jenis_produk'] == 'Utama') {
                     $ready_stok = ReadyStok::find($produk['id_stok_produk']);
-                    $ready_stok['jumlah_stok'] -= $dt['jumlah_produk'];
+                    $ready_stok['jumlah_stok'] -= ($dt['jumlah_produk'] * $produk['quantity']);
                     $ready_stok->save();
                 } else if ($produk['jenis_produk'] == 'Titipan') {
                     $ready_stok = ReadyStok::find($produk['id_stok_produk']);
@@ -553,10 +553,36 @@ class TransaksiController extends Controller
                     }
                 }
             } else if ($data['jenis_pesanan'] == 'pre-order') {
-                $limit_harian = LimitOrder::select()
-                    ->where('id_produk', $dt['id_produk'])
-                    ->where('tanggal', 'tanggal_pengambilan')
-                    ->first();
+
+
+                if ($produk['jenis_produk'] == 'Utama') {
+                    $limit_harian = LimitOrder::select()
+                        ->where('id_produk', $dt['id_produk'])
+                        ->where('tanggal', 'tanggal_pengambilan')
+                        ->first();
+                    $limit_harian['jumlah_sisa'] -= $dt['jumlah_produk'];
+                    $limit_harian->save();
+                } else if ($produk['jenis_produk'] == 'Titipan') {
+                    $limit_harian = ReadyStok::find($produk['id_stok_produk']);
+                    $limit_harian['jumlah_sisa'] -= $dt['jumlah_produk'];
+                    $limit_harian->save();
+                } else if ($produk['jenis_produk'] == 'Hampers') {
+                    $hampers = DB::table('detail_hampers as dt')
+                        ->join('hampers as h', 'h.id_produk', '=', 'dt.id_hampers')
+                        ->join('produk_utama as pu', 'pu.id_produk', '=', 'dt.id_produk')
+                        ->join('produk as p', 'p.id_produk', '=', 'pu.id_produk')
+                        ->where('dt.id_hampers', $produk['id_produk'])
+                        ->get();
+
+                    foreach ($hampers as $ph) {
+                        $limit_harian = LimitOrder::select()
+                            ->where('id_produk', $dt['id_produk'])
+                            ->where('tanggal', 'tanggal_pengambilan')
+                            ->first();
+                        $limit_harian['jumlah_sisa'] -= $dt['jumlah_produk'];
+                        $limit_harian->save();
+                    }
+                }
             }
         }
         return response([
