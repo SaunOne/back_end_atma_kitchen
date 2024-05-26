@@ -55,9 +55,9 @@ class AlamatController extends Controller
     public function store(Request $request)
     {
         $data = $request->all();
+        $data = $data['id_user'] = auth()->User()->id_user;
 
         $validate = Validator::make($data, [
-            'id_user' => 'required',
             'provinsi' => 'required',
             'kabupaten' => 'required',
             'kecamatan' => 'required',
