@@ -530,9 +530,6 @@ class TransaksiController extends Controller
             $produk = Produk::select()->where('id_produk', $dt['id_produk'])->first();
 
             if ($data['jenis_pesanan'] == "ready stock") {
-
-
-
                 if ($produk['jenis_produk'] == 'Utama') {
                     $ready_stok = ReadyStok::find($produk['id_stok_produk']);
                     $ready_stok['jumlah_stok'] -= $dt['jumlah_produk'];
@@ -555,7 +552,7 @@ class TransaksiController extends Controller
                         $ready_stok->save();
                     }
                 }
-            } else if ($data['pre-order']) {
+            } else if ($data['jenis_pesanan'] == 'pre-order') {
                 $limit_harian = LimitOrder::select()
                     ->where('id_produk', $dt['id_produk'])
                     ->where('tanggal', 'tanggal_pengambilan')
