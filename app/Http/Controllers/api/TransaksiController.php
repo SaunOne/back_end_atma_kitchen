@@ -199,8 +199,10 @@ class TransaksiController extends Controller
         //kasus pre order
         if ($data['jenis_pesanan'] == "pre-order") {
             //kemudain lakukan perulangan untuk pengecekannya
+            
             for ($i = 0; $i < count($produkData); $i++) {
                 if ($produkData[$i]['jenis_produk'] == 'Utama') {
+
                     $produkUtama = Produk::select('produk.*', 'lo.*')
                         ->join('produk_utama as pu', 'produk.id_produk', '=', 'pu.id_produk')
                         ->join('limit_order as lo', 'produk.id_produk', '=', 'lo.id_produk')
@@ -243,8 +245,8 @@ class TransaksiController extends Controller
                         }
                     }
 
-                    if ($produkTitipan['jumlah_sisa'] < $jumlahProduk) {
-                        $produkTitipan["message"] = $produkTitipan['nama_produk'] . " tersisa " . $produkTitipan['jumlah_sisa'] . " " . $produkTitipan['satuan'];
+                    if ($produkTitipan['jumlah_stok'] < $jumlahProduk) {
+                        $produkTitipan["message"] = $produkTitipan['nama_produk'] . " tersisa " . $produkTitipan['jumlah_stok'] . " " . $produkTitipan['satuan'];
                         $produkTitipan->jumlah_produk = $data['detail_transaksi'][$i]['jumlah_produk'];
                         $produkTitipan->status = false;
                         $listEror[] = $produkTitipan;
@@ -291,11 +293,10 @@ class TransaksiController extends Controller
                         if ($produkHampers->jumlah_sisa < $jumlahProduk) {
                             //mencari data hampers yang kelebihan dll
                             $temp["message"] = $temp['nama_produk'] . " tersisa " . $minJumlahSisa . " " . $temp['satuan'];
-                            $listEror[] = $temp;
                             $temp->jumlah_produk = $data['detail_transaksi'][$i]['jumlah_produk'];
                             $temp->status = false;
-                            $data['detail_transaksi'][$i]['jumlah_sisa'] = $minJumlahSisa;
-                            $data['detail_transaksi'][$i]['message'] =  $temp['message'];
+                            $temp->jumlah_stok = $minJumlahSisa;
+                            $listEror[] = $temp;
                             break;
                         } else {
                             $temp->jumlah_produk = $data['detail_transaksi'][$i]['jumlah_produk'];
@@ -554,32 +555,36 @@ class TransaksiController extends Controller
                 }
             } else if ($data['jenis_pesanan'] == 'pre-order') {
 
-
+                
                 if ($produk['jenis_produk'] == 'Utama') {
+                    
                     $limit_harian = LimitOrder::select()
                         ->where('id_produk', $dt['id_produk'])
-                        ->where('tanggal', 'tanggal_pengambilan')
+                        ->where('tanggal', $data['tanggal_pengambilan'])
                         ->first();
                     $limit_harian['jumlah_sisa'] -= $dt['jumlah_produk'];
                     $limit_harian->save();
                 } else if ($produk['jenis_produk'] == 'Titipan') {
-                    $limit_harian = ReadyStok::find($produk['id_stok_produk']);
-                    $limit_harian['jumlah_sisa'] -= $dt['jumlah_produk'];
-                    $limit_harian->save();
+                    $stokProduk = ReadyStok::find($produk['id_stok_produk']);
+                    $stokProduk['jumlah_stok'] -= $dt['jumlah_produk'];
+                    $stokProduk->save();
                 } else if ($produk['jenis_produk'] == 'Hampers') {
+                    
                     $hampers = DB::table('detail_hampers as dt')
                         ->join('hampers as h', 'h.id_produk', '=', 'dt.id_hampers')
                         ->join('produk_utama as pu', 'pu.id_produk', '=', 'dt.id_produk')
                         ->join('produk as p', 'p.id_produk', '=', 'pu.id_produk')
                         ->where('dt.id_hampers', $produk['id_produk'])
                         ->get();
-
+                       
                     foreach ($hampers as $ph) {
+                        
                         $limit_harian = LimitOrder::select()
-                            ->where('id_produk', $dt['id_produk'])
-                            ->where('tanggal', 'tanggal_pengambilan')
+                            ->where('id_produk', $ph->id_produk)
+                            ->where('tanggal', $data['tanggal_pengambilan'])
                             ->first();
-                        $limit_harian['jumlah_sisa'] -= $dt['jumlah_produk'];
+                            
+                        $limit_harian->jumlah_sisa -= $dt['jumlah_produk'];
                         $limit_harian->save();
                     }
                 }
