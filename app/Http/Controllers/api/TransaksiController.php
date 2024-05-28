@@ -9,6 +9,7 @@ use App\Models\Transaksi;
 use App\Models\Alamat;
 use App\Models\Point;
 use App\Models\User;
+use App\Models\Wallet;
 use App\Models\Hampers;
 use App\Models\LimitOrder;
 use App\Models\ReadyStok;
@@ -168,13 +169,9 @@ class TransaksiController extends Controller
     }
 
 
-    public function test(Request $request)
+    public function test(Request $request,$id)
     {
-        $data = $request->all();
-
-        $idProdukList = array_map(function ($detail) {
-            return $detail['id_produk'];
-        }, $data['detail_transaksi']);
+        // $stok = $id
     }
 
     public function cekStok(Request $request)
@@ -199,7 +196,7 @@ class TransaksiController extends Controller
         //kasus pre order
         if ($data['jenis_pesanan'] == "pre-order") {
             //kemudain lakukan perulangan untuk pengecekannya
-            
+
             for ($i = 0; $i < count($produkData); $i++) {
                 if ($produkData[$i]['jenis_produk'] == 'Utama') {
 
@@ -493,29 +490,51 @@ class TransaksiController extends Controller
         $month = Carbon::parse($transaksi['no_pengambilan'])->format('m');
 
 
-        if ($transaksi['total_harga_transaksi'] >= 1000000) {
-            $sisa_uang = $transaksi['total_harga_transaksi'] - ($transaksi['total_harga_transaksi'] % 1000000);
-            $point = ($sisa_uang / 1000000) * 200;
-        } else if ($transaksi['total_harga_transaksi'] >= 500000) {
-            $sisa_uang = $transaksi['total_harga_transaksi'] - ($transaksi['total_harga_transaksi'] % 500000);
-            $point = ($sisa_uang / 500000) * 75;
-        } else if ($transaksi['total_harga_transaksi'] >= 100000) {
-            $sisa_uang = $transaksi['total_harga_transaksi'] - ($transaksi['total_harga_transaksi'] % 100000);
-            $point = ($sisa_uang / 100000) * 15;
-        } else {
-            $sisa_uang = $transaksi['total_harga_transaksi'] - ($transaksi['total_harga_transaksi'] % 10000);
-            $point = ($sisa_uang / 10000) * 1;
+        $total_harga_transaksi = $transaksi['total_harga_transaksi'];
+        $point = 0;
+
+        if ($total_harga_transaksi >= 500000) {
+            $sisa_uang = $total_harga_transaksi - ($total_harga_transaksi % 500000);
+            $point += ($sisa_uang / 500000) * 75;
+            $total_harga_transaksi %= 500000;
         }
 
+        if ($total_harga_transaksi >= 200000) {
+            $sisa_uang = $total_harga_transaksi - ($total_harga_transaksi % 200000);
+            $point += ($sisa_uang / 200000) * 30;
+            $total_harga_transaksi %= 200000;
+        }
+
+        if ($total_harga_transaksi >= 100000) {
+            $sisa_uang = $total_harga_transaksi - ($total_harga_transaksi % 100000);
+            $point += ($sisa_uang / 100000) * 15;
+            $total_harga_transaksi %= 100000;
+        }
+
+        if ($total_harga_transaksi >= 10000) {
+            $sisa_uang = $total_harga_transaksi - ($total_harga_transaksi % 10000);
+            $point += ($sisa_uang / 10000) * 1;
+            $total_harga_transaksi %= 10000;
+        }
+
+        // Ambil tanggal lahir user berdasarkan id_user
         $user = User::select('tanggal_lahir')->where('id_user', $data['id_user'])->first();
 
         // Konversi tanggal lahir dari string menjadi objek Carbon
-        $tanggal_lahir = Carbon::parse($user->tanggal_lahir)->format('m-d');
+        $tanggal_lahir = Carbon::parse($user->tanggal_lahir);
 
-        // Ambil tanggal saat ini dan konversi ke format bulan dan tanggal
-        $tanggal_sekarang = Carbon::now()->format('m-d');
-        // Membandingkan bulan dan tanggal
-        if ($tanggal_lahir == $tanggal_sekarang) {
+        // Ambil tanggal saat ini
+        $tanggal_sekarang = Carbon::now();
+
+        // Buat range 3 hari sebelum dan 3 hari setelah tanggal lahir
+        $tanggal_mulai = $tanggal_lahir->copy()->subDays(3)->format('m-d');
+        $tanggal_akhir = $tanggal_lahir->copy()->addDays(3)->format('m-d');
+
+        // Konversi tanggal saat ini ke format bulan dan tanggal
+        $tanggal_sekarang_format = $tanggal_sekarang->format('m-d');
+
+        // Membandingkan apakah tanggal saat ini ada dalam rentang 3 hari sebelum dan 3 hari setelah tanggal lahir
+        if ($tanggal_sekarang_format >= $tanggal_mulai && $tanggal_sekarang_format <= $tanggal_akhir) {
             $point *= 2;
         }
 
@@ -554,10 +573,7 @@ class TransaksiController extends Controller
                     }
                 }
             } else if ($data['jenis_pesanan'] == 'pre-order') {
-
-                
                 if ($produk['jenis_produk'] == 'Utama') {
-                    
                     $limit_harian = LimitOrder::select()
                         ->where('id_produk', $dt['id_produk'])
                         ->where('tanggal', $data['tanggal_pengambilan'])
@@ -569,21 +585,20 @@ class TransaksiController extends Controller
                     $stokProduk['jumlah_stok'] -= $dt['jumlah_produk'];
                     $stokProduk->save();
                 } else if ($produk['jenis_produk'] == 'Hampers') {
-                    
+
                     $hampers = DB::table('detail_hampers as dt')
                         ->join('hampers as h', 'h.id_produk', '=', 'dt.id_hampers')
                         ->join('produk_utama as pu', 'pu.id_produk', '=', 'dt.id_produk')
                         ->join('produk as p', 'p.id_produk', '=', 'pu.id_produk')
                         ->where('dt.id_hampers', $produk['id_produk'])
                         ->get();
-                       
+
                     foreach ($hampers as $ph) {
-                        
+
                         $limit_harian = LimitOrder::select()
                             ->where('id_produk', $ph->id_produk)
                             ->where('tanggal', $data['tanggal_pengambilan'])
                             ->first();
-                            
                         $limit_harian->jumlah_sisa -= $dt['jumlah_produk'];
                         $limit_harian->save();
                     }
@@ -599,7 +614,8 @@ class TransaksiController extends Controller
     {
 
         $data = $request->all();
-
+        
+        $id_user = Auth::User()->id_user;
         $validate = Validator::make($data, [
             "bukti_pembayaran" => "required",
         ]);
@@ -621,6 +637,9 @@ class TransaksiController extends Controller
         }
 
         $data['status_transaksi'] = 'sudah dibayar';
+
+        $point = Point::where('id_user', $id_user)->first();
+
         $transaksi->update(
             $data
         );
@@ -653,6 +672,74 @@ class TransaksiController extends Controller
         //ketika pesanan ditolak
         if ($data['status'] == 'ditolak') {
             //balikin stoknya
+
+            $point = Point::find($transaksi['id_user']);
+            $point->jumlah_point += $transaksi['point_terpakai'];
+            $point->save();
+
+            $wallet = Wallet::find($id);
+
+            $detail_transaksi = DetailTransaksi::select('detail_transaksi.*', 'p.*')
+                ->join('produk as p', 'p.id_produk', 'detail_transaksi.id_produk')
+                ->where('id_transaksi', $id)->get();
+
+            // return response(['data' => $detail_transaksi['jenis_produk']]);
+            foreach ($detail_transaksi as $dt) {
+                if ($transaksi['jenis_pesanan'] == 'pre-order') {
+
+                    if ($dt['jenis_produk'] == 'Utama') {
+                        $limit = $limit_harian = LimitOrder::select()
+                            ->where('id_produk', $dt->id_produk)
+                            ->where('tanggal', $transaksi['tanggal_pengambilan'])
+                            ->first();
+                        $limit->jumlah_sisa += $dt->jumlah_produk;
+                        $limit->save();
+                    } else if ($dt['jenis_produk'] == 'Titipan') {
+                        $ready_stok = ReadyStok::find($dt['id_stok_produk']);
+                        $ready_stok->jumlah_stok += ($dt->jumlah_produk * $dt['quantity']);
+                        $ready_stok->save();
+                    } else if ($dt['jenis_produk'] == 'Hampers') {
+                        $hampers = DB::table('detail_hampers as dt')
+                            ->join('hampers as h', 'h.id_produk', '=', 'dt.id_hampers')
+                            ->join('produk_utama as pu', 'pu.id_produk', '=', 'dt.id_produk')
+                            ->join('produk as p', 'p.id_produk', '=', 'pu.id_produk')
+                            ->where('dt.id_hampers', $dt['id_produk'])
+                            ->get();
+
+                        foreach ($hampers as $ph) {
+                            $limit_harian = LimitOrder::select()
+                                ->where('id_produk', $ph->id_produk)
+                                ->where('tanggal', $transaksi['tanggal_pengambilan'])
+                                ->first();
+                            $limit_harian->jumlah_sisa += $dt['jumlah_produk'];
+                            $limit_harian->save();
+                        }
+                    }
+                } else if ($transaksi['jenis_pesanan'] == 'ready stock') {
+                    if ($dt['jenis_produk'] == 'Utama') {
+                        $ready_stok = ReadyStok::find($dt['id_stok_produk']);
+                        $ready_stok->jumlah_stok += ($dt->jumlah_produk * $dt['quantity']);
+                        $ready_stok->save();
+                    } else if ($dt['jenis_produk'] == 'Titipan') {
+                        $ready_stok = ReadyStok::find($dt['id_stok_produk']);
+                        $ready_stok->jumlah_stok += ($dt->jumlah_produk * $dt['quantity']);
+                        $ready_stok->save();
+                    } else if ($dt['jenis_produk'] == 'Hampers') {
+                        $hampers = DB::table('detail_hampers as dt')
+                            ->join('hampers as h', 'h.id_produk', '=', 'dt.id_hampers')
+                            ->join('produk_utama as pu', 'pu.id_produk', '=', 'dt.id_produk')
+                            ->join('produk as p', 'p.id_produk', '=', 'pu.id_produk')
+                            ->where('dt.id_hampers', $dt['id_produk'])
+                            ->get();
+
+                        foreach ($hampers as $ph) {
+                            $ready_stok = ReadyStok::find($ph->id_stok_produk);
+                            $ready_stok->jumlah_stok += ($dt->jumlah_produk * $ph->quantity);
+                            $ready_stok->save();
+                        }
+                    }
+                }
+            }
 
             $transaksi->status_transaksi = 'ditolak';
             $transaksi->save();
@@ -790,6 +877,37 @@ class TransaksiController extends Controller
         }
     }
 
+    public function konfirmasiCustomer(Request $request, $id)
+    {
+
+
+        $data = $request->all();
+
+        $transaksi = Transaksi::find($id);
+        if (!$transaksi) {
+            return response(['message' => 'Absensi not found'], 404);
+        }
+
+        if (!($transaksi['status_transaksi'] == 'sudah di-pickup')) {
+            return response([
+                "message" => "pesanan belum siap di pick-up"
+            ], 400);
+        }
+
+
+        $transaksi['status_transaksi'] = "selesai";
+
+        $point = Point::find($transaksi['id_user']);
+        $point->jumlah_point += $transaksi['point_diperoleh'];
+        $point->save();
+        $transaksi->save();
+
+        return response([
+            "message" => "Pesanan Telah Selesai point yang diperoleh " . $point->jumlah_point . " point",
+            "data" => $transaksi
+        ]);
+    }
+
     public function doneTransaksi($id)
     {
         $transaksi = Transaksi::find($id);
@@ -853,10 +971,11 @@ class TransaksiController extends Controller
         $data['point_diperoleh'] = $transaksi['point_diperoleh'];
         $data['point_customer'] = $transaksi['jumlah_point'];
 
+
         $data['produk'] = DetailTransaksi::select('detail_transaksi.*', 'p.*')
             ->join('produk as p', 'p.id_produk', 'detail_transaksi.id_produk')
             ->join('transaksi as t', 't.id_transaksi', 'detail_transaksi.id_transaksi')
-            ->where('t.id_user', $id)
+            ->where('t.id_transaksi', $id)
             ->get();
 
         return response([
