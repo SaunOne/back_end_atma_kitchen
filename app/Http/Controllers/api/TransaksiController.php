@@ -678,7 +678,7 @@ class TransaksiController extends Controller
             $transaksi->save();
 
             return response([
-                "message" => "Transaksi Di Update Pembayaran Tidak Valid",
+                "message" => "Radius Berhasil Di Input",
                 "data" => $transaksi
             ], 200);
         }
