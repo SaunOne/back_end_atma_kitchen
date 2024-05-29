@@ -794,6 +794,24 @@ class TransaksiController extends Controller
 
         $transaksi = Transaksi::find($id);
 
+        if ($request->hasFile('bukti_pembayaran')) {
+            $uploadFolder = 'images';
+            $image = $request->file('bukti_pembayaran');
+            // Generate nama file acak dengan 12 karakter
+            $randomFileName = Str::random(12);
+            // Dapatkan ekstensi file asli
+            $extension = $image->getClientOriginalExtension();
+            // Gabungkan nama file acak dengan ekstensi
+            $fileNameToStore = $randomFileName . '.' . $extension;
+            // Simpan gambar
+            $image_uploaded_path = $image->storeAs($uploadFolder, $fileNameToStore, 'public');
+            // Mendapatkan nama file yang diunggah
+            $uploadedImageResponse = basename($image_uploaded_path);
+            // Set data foto profile baru
+            $transaksi['bukti_pembayaran'] = 'images/' . $uploadedImageResponse;
+            $data['bukti_pembayaran'] = $transaksi['bukti_pembayaran'] = 'images/' . $uploadedImageResponse;
+        }
+
         if (!$transaksi) {
             return response(['message' => 'transaksi not found'], 404);
         }
@@ -807,7 +825,7 @@ class TransaksiController extends Controller
         $data['status_transaksi'] = 'sudah dibayar';
 
         $point = Point::where('id_user', $id_user)->first();
-
+        
         $transaksi->update(
             $data
         );
@@ -1103,23 +1121,7 @@ class TransaksiController extends Controller
                     "uang_anda" =>   $data['jumlah_pembayaran']
                 ]);
             }
-            if ($request->hasFile('foto_profile')) {
-                $uploadFolder = 'images';
-                $image = $request->file('foto_profile');
-                // Generate nama file acak dengan 12 karakter
-                $randomFileName = Str::random(12);
-                // Dapatkan ekstensi file asli
-                $extension = $image->getClientOriginalExtension();
-                // Gabungkan nama file acak dengan ekstensi
-                $fileNameToStore = $randomFileName . '.' . $extension;
-                // Simpan gambar
-                $image_uploaded_path = $image->storeAs($uploadFolder, $fileNameToStore, 'public');
-                // Mendapatkan nama file yang diunggah
-                $uploadedImageResponse = basename($image_uploaded_path);
-                // Set data foto profile baru
-                $transaksi['bukti_pembayaran'] = 'images/' . $uploadedImageResponse;
-    
-            }
+            
             $transaksi->status_transaksi = 'pembayaran valid';
             $transaksi->jumlah_pembayaran = $data["jumlah_pembayaran"];
             $transaksi['tanggal_pelunasan'] = now();
