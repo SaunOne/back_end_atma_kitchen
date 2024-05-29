@@ -251,6 +251,8 @@ class TransaksiController extends Controller
         ], 200);
     }
 
+    
+
 
     public function test(Request $request, $id)
     {
@@ -818,7 +820,7 @@ class TransaksiController extends Controller
     public function konfirmasiMO(Request $request, $id)
     {
         $data = $request->all();
-
+        $id_user = Auth::user()->id_user;
         $validate = Validator::make($data, [
             "status" => "required", //valid atau tidak
         ]);
@@ -907,6 +909,9 @@ class TransaksiController extends Controller
 
             $transaksi->status_transaksi = 'ditolak';
             $transaksi->save();
+            $wallet = Wallet::find($id_user);
+            $wallet->jumlah_saldo+=$transaksi->jumlah_pembayaran;
+            $wallet->save();
             return response([
                 "message" => "Transaksi Di Tolak MO",
                 "data" => $transaksi
