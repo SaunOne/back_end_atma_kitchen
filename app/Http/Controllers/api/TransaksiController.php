@@ -251,7 +251,7 @@ class TransaksiController extends Controller
         ], 200);
     }
 
-    
+
 
 
     public function test(Request $request, $id)
@@ -910,7 +910,7 @@ class TransaksiController extends Controller
             $transaksi->status_transaksi = 'ditolak';
             $transaksi->save();
             $wallet = Wallet::find($id_user);
-            $wallet->jumlah_saldo+=$transaksi->jumlah_pembayaran;
+            $wallet->jumlah_saldo += $transaksi->jumlah_pembayaran;
             $wallet->save();
             return response([
                 "message" => "Transaksi Di Tolak MO",
@@ -947,6 +947,96 @@ class TransaksiController extends Controller
             "message" => "status yang diminta tidak valid!!",
             "data" => $transaksi
         ], 400);
+    }
+
+    public function tampilBahanPerluDibeli()
+    {
+
+        $transaksis = Transaksi::select()
+            ->where('status_transaksi', 'diterima')
+            ->get();
+
+
+
+        $listBahan = [];
+        foreach ($transaksis as $transaksi) {
+
+            $detailTransaksi = DetailTransaksi::select()
+                ->join('produk as p', 'p.id_produk', 'detail_transaksi.id_produk')
+                ->where('detail_transaksi.id_transaksi', $transaksi['id_transaksi'])
+                ->get();
+
+            foreach ($detailTransaksi as $dt) {
+                if ($dt['jenis_produk'] == 'Utama') {
+                    $resep = Resep::select()
+                        ->join('bahan as b', 'b.id_bahan', 'resep.id_bahan')
+                        ->where('resep.id_produk', $dt['id_produk'])
+                        ->get();
+                    foreach ($resep as $r) {
+                        $temp = true;
+
+                        foreach ($listBahan as $lb) {
+
+                            if ($lb['id_bahan'] == $r->id_bahan) {
+                                $lb['stok_bahan'] -= ($r['jumlah_bahan']  * $dt['jumlah_produk']);
+
+                                $temp = false;
+                            }
+                        }
+                        if ($temp == true) {
+
+                            $r['stok_bahan'] -= ($r['jumlah_bahan'] * $dt['jumlah_produk']);
+                            $listBahan[] = $r;
+                        }
+                    }
+                } else if ($dt['jenis_produk'] == 'Hampers') {
+                    $detailHampers = DetailHampers::select()
+                        ->join('produk_utama as pu', 'pu.id_produk', 'detail_hampers.id_produk')
+                        ->where('detail_hampers.id_hampers', $dt['id_produk'])
+                        ->get();
+                    foreach ($detailHampers as $dh) {
+                        $resep = Resep::select()
+                            ->join('bahan as b', 'b.id_bahan', 'resep.id_bahan')
+                            ->where('resep.id_produk', $dh['id_produk'])
+                            ->get();
+                        foreach ($resep as $r) {
+                            // $bahan = Bahan::find($r['id_bahan']);
+                            $temp = true;
+
+                            foreach ($listBahan as $lb) {
+
+                                if ($lb['id_bahan'] == $r->id_bahan) {
+
+                                    $lb['stok_bahan'] -= ($r['jumlah_bahan'] * $dh['jumlah_produk'] * $dt['jumlah_produk']);
+                                    $temp = false;
+                                }
+                            }
+                            if ($temp == true) {
+                                // return response(["kurangi" => ($r['jumlah_bahan']  * $dt['jumlah_produk'])]);
+                                $r['stok_bahan'] -= ($r['jumlah_bahan'] * $dh['jumlah_produk'] * $dt['jumlah_produk']);
+                                // return response(["kurangi" => $r]);
+                                $listBahan[] = $r;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        $bahanKurang = [];
+        $listBahanKurang = [];
+        foreach ($listBahan as $bahan) {
+            if ($bahan['stok_bahan'] < 0) {
+                $bahanKurang[] = 'Stok bahan ' . $bahan['nama_bahan'] . ' masih kurang ' . ($bahan['stok_bahan'] * -1) . ' ' . $bahan['satuan'];
+                $bahan['kekurangan'] =  $bahan['stok_bahan'] * -1;
+                $listBahanKurang[] = $bahan;
+            }
+        }
+        
+        return response([
+            "message" => "Berhasil tampil bahan yang  perlu di beli",
+            "bahan_perlu_dibeli" => $listBahanKurang,
+            "bahan" => $bahanKurang
+        ], 200);
     }
 
 
