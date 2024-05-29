@@ -467,6 +467,13 @@ class TransaksiController extends Controller
             "jenis_pengiriman" => "required"
         ]);
 
+        $point = Point::where('id_user', $data['id_user'])->first();
+
+        if ($point) {
+            $point->jumlah_point -= $data['point_terpakai'];
+            $point->save();
+        }
+
 
 
         if ($validate->fails()) {
@@ -855,7 +862,7 @@ class TransaksiController extends Controller
         $data['produk'] = DetailTransaksi::select('detail_transaksi.*', 'p.*')
             ->join('produk as p', 'p.id_produk', 'detail_transaksi.id_produk')
             ->join('transaksi as t', 't.id_transaksi', 'detail_transaksi.id_transaksi')
-            ->where('t.id_user', $id)
+            ->where('t.id_transaksi', $id)
             ->get();
 
         return response([
