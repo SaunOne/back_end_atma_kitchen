@@ -164,7 +164,7 @@ Route::middleware(['auth:api', 'customer'])->group(function () {
      Route::delete('/keranjang/{id}', [App\Http\Controllers\api\KeranjangController::class, 'destroy']);
 }); 
 
-Route::post('/transaksi-test', [App\Http\Controllers\api\TransaksiController::class, 'test']);
+Route::post('/transaksi-test/{id}', [App\Http\Controllers\api\TransaksiController::class, 'test']);
 
 Route::get('/produk', [App\Http\Controllers\api\ProdukController::class, 'showAll']);
 Route::get('/produk/{tanggal}', [App\Http\Controllers\api\ProdukController::class, 'showAllByTanggal']);
