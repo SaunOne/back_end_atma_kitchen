@@ -22,6 +22,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\PengeluaranLainLain;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class TransaksiController extends Controller
 {
@@ -911,7 +913,7 @@ class TransaksiController extends Controller
             $transaksi->save();
             $wallet = Wallet::find($id_user);
             $wallet->jumlah_saldo += $transaksi->jumlah_pembayaran;
-            $wallet->save();
+            $wallet->save(); 
             return response([
                 "message" => "Transaksi Di Tolak MO",
                 "data" => $transaksi
@@ -1100,6 +1102,23 @@ class TransaksiController extends Controller
                     "total" => $transaksi['total_harga_transaksi'],
                     "uang_anda" =>   $data['jumlah_pembayaran']
                 ]);
+            }
+            if ($request->hasFile('foto_profile')) {
+                $uploadFolder = 'images';
+                $image = $request->file('foto_profile');
+                // Generate nama file acak dengan 12 karakter
+                $randomFileName = Str::random(12);
+                // Dapatkan ekstensi file asli
+                $extension = $image->getClientOriginalExtension();
+                // Gabungkan nama file acak dengan ekstensi
+                $fileNameToStore = $randomFileName . '.' . $extension;
+                // Simpan gambar
+                $image_uploaded_path = $image->storeAs($uploadFolder, $fileNameToStore, 'public');
+                // Mendapatkan nama file yang diunggah
+                $uploadedImageResponse = basename($image_uploaded_path);
+                // Set data foto profile baru
+                $transaksi['bukti_pembayaran'] = 'images/' . $uploadedImageResponse;
+    
             }
             $transaksi->status_transaksi = 'pembayaran valid';
             $transaksi->jumlah_pembayaran = $data["jumlah_pembayaran"];
