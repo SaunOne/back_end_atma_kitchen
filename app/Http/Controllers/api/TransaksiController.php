@@ -1107,6 +1107,8 @@ class TransaksiController extends Controller
             }
 
             if (!($transaksi['status_transaksi'] == 'sudah dibayar')) {
+                
+                
 
                 return response([
                     "message" => "pembayaran is not valid",
@@ -1114,13 +1116,20 @@ class TransaksiController extends Controller
             }
 
             if ($data['jumlah_pembayaran'] < $transaksi['total_harga_transaksi']) {
-
+                
                 return response([
                     "message" => "Pembayaran Masih Kurang",
                     "total" => $transaksi['total_harga_transaksi'],
                     "uang_anda" =>   $data['jumlah_pembayaran']
                 ]);
             }
+
+            if($data['jumlah_pembayaran'] > $transaksi['total_harga_transaksi']){
+                $jumlah_sisa = $data['jumlah_pembayaran'] - $transaksi['total_harga_transaksi'];
+                $transaksi->tip = $jumlah_sisa;
+            }
+
+            
             
             $transaksi->status_transaksi = 'pembayaran valid';
             $transaksi->jumlah_pembayaran = $data["jumlah_pembayaran"];
@@ -1153,7 +1162,7 @@ class TransaksiController extends Controller
             $transaksi->save();
 
             return response([
-                "message" => "Transaksi Di Update Pembayaran Tidak Valid",
+                "message" => "Input biaya pengiriman berhasil",
                 "data" => $transaksi
             ], 200);
         }
