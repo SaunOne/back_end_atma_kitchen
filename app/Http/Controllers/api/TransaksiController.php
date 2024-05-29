@@ -843,7 +843,7 @@ class TransaksiController extends Controller
             $point->jumlah_point += $transaksi['point_terpakai'];
             $point->save();
 
-            $wallet = Wallet::find($id);
+            
 
             $detail_transaksi = DetailTransaksi::select('detail_transaksi.*', 'p.*')
                 ->join('produk as p', 'p.id_produk', 'detail_transaksi.id_produk')
