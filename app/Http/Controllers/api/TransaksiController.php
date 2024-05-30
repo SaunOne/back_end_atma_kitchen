@@ -1141,8 +1141,10 @@ class TransaksiController extends Controller
             $transaksi->status_transaksi = 'menunggu pembayaran';
             if($data['radius'] <= 5){
                 $transaksi->biaya_pengiriman = 10000;
-            } else if($data['radius'] <= 15){
+            } else if($data['radius'] <= 10){
                 $transaksi->biaya_pengiriman = 15000; 
+            } else if($data['radius'] <= 15){
+                $transaksi->biaya_pengiriman = 20000; 
             } else {
                 $transaksi->biaya_pengiriman = 25000; 
             }
