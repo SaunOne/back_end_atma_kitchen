@@ -33,7 +33,7 @@ class UserController extends Controller
         $user = User::select('users.*', 'point.*', 'wallet.*')
             ->join('point', 'users.id_user', '=', 'point.id_user')
             ->join('wallet', 'users.id_user', '=', 'wallet.id_user')
-            ->where('users.id_user', '=', 57)
+            ->where('users.id_user', '=', $id)
             ->first();
 
         if (!$user) {

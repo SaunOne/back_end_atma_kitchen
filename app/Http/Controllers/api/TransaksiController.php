@@ -628,7 +628,6 @@ class TransaksiController extends Controller
         ]);
 
 
-
         if ($validate->fails()) {
             return response(['message' => $validate->errors()->first()], 400);
         }
@@ -1140,7 +1139,14 @@ class TransaksiController extends Controller
             }
 
             $transaksi->status_transaksi = 'menunggu pembayaran';
-            $transaksi->biaya_pengiriman = $data['radius'] * 10000; // 10k per km
+            if($data['radius'] <= 5){
+                $transaksi->biaya_pengiriman = 10000;
+            } else if($data['radius'] <= 15){
+                $transaksi->biaya_pengiriman = 15000; 
+            } else {
+                $transaksi->biaya_pengiriman = 25000; 
+            }
+            // 10k per km
             $transaksi->total_harga_transaksi += $transaksi->biaya_pengiriman;
             $transaksi->save();
 
