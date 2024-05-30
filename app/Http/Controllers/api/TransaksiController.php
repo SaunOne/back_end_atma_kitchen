@@ -634,7 +634,6 @@ class TransaksiController extends Controller
         }
 
 
-
         if ($validate->fails()) {
             return response(['message' => $validate->errors()->first()], 400);
         }
@@ -656,9 +655,9 @@ class TransaksiController extends Controller
 
         $year = Carbon::parse($transaksi['no_pengambilan'])->format('y');
         $month = Carbon::parse($transaksi['no_pengambilan'])->format('m');
-
-
+        
         $total_harga_transaksi = $transaksi['total_harga_transaksi'];
+        $total_harga_transaksi += ($transaksi['point_terpakai']*100) ;
         $point = 0;
 
         if ($total_harga_transaksi >= 500000) {
@@ -1157,7 +1156,16 @@ class TransaksiController extends Controller
             }
 
             $transaksi->status_transaksi = 'menunggu pembayaran';
-            $transaksi->biaya_pengiriman = $data['radius'] * 10000; // 10k per km
+            if($data['radius'] <= 5){
+                $transaksi->biaya_pengiriman = 10000;
+            } else if($data['radius'] <= 10){
+                $transaksi->biaya_pengiriman = 15000; 
+            } else if($data['radius'] <= 15){
+                $transaksi->biaya_pengiriman = 20000; 
+            } else {
+                $transaksi->biaya_pengiriman = 25000; 
+            }
+            // 10k per km
             $transaksi->total_harga_transaksi += $transaksi->biaya_pengiriman;
             $transaksi->save();
 
