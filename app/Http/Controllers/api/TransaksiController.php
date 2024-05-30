@@ -649,9 +649,9 @@ class TransaksiController extends Controller
 
         $year = Carbon::parse($transaksi['no_pengambilan'])->format('y');
         $month = Carbon::parse($transaksi['no_pengambilan'])->format('m');
-
-
+        
         $total_harga_transaksi = $transaksi['total_harga_transaksi'];
+        $total_harga_transaksi += ($transaksi['point_terpakai']*100) ;
         $point = 0;
 
         if ($total_harga_transaksi >= 500000) {
