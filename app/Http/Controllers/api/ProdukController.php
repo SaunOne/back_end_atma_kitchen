@@ -38,7 +38,7 @@ class ProdukController extends Controller
             ->join('produk_utama as pu', 'pu.id_produk', '=', 'produk.id_produk')
             ->join('limit_order as lo', 'lo.id_produk', '=', 'pu.id_produk')
             ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'produk.id_stok_produk')
-            ->where('lo.tanggal', '2024-05-19')
+            ->where('lo.tanggal', now()->format('Y-m-d'))
             ->get();
         
         $listProduk = $produkUtama;
@@ -70,7 +70,7 @@ class ProdukController extends Controller
             ->join('produk_utama as pu', 'pu.id_produk', '=', 'dt.id_produk')
             ->join('limit_order as lo', 'lo.id_produk', '=', 'pu.id_produk')
             ->where('dt.id_hampers', $produk['id_produk'])
-            ->where('lo.tanggal', '2024-5-19') //nanti inget ganti ke now()
+            ->where('lo.tanggal', now()->format('Y-m-d')) //nanti inget ganti ke now()
             ->min('lo.jumlah_sisa');
 
             $produk->jumlah_stok = DB::table('detail_hampers as dt')
@@ -139,7 +139,7 @@ class ProdukController extends Controller
             ->join('produk_utama as pu', 'pu.id_produk', '=', 'dt.id_produk')
             ->join('limit_order as lo', 'lo.id_produk', '=', 'pu.id_produk')
             ->where('dt.id_hampers', $produk['id_produk'])
-            ->where('lo.tanggal', '2024-5-19') //nanti inget ganti ke $tanggal
+            ->where('lo.tanggal', $tanggal) //nanti inget ganti ke $tanggal
             ->min('lo.jumlah_sisa');
 
             $produk->jumlah_stok = DB::table('detail_hampers as dt')
@@ -157,6 +157,76 @@ class ProdukController extends Controller
         return response([
             'message' => 'All Produk Retrieved',
             'data' => $listProduk
+        ], 200);
+    }
+
+    public function showProdukTerlaris()
+    {   
+
+        //init buat list prdouknya  
+        $listProduk = [];
+   
+        $produkUtama = Produk::select(
+            'produk.*',
+            'lo.*',
+            'rs.*',
+            'pu.*'
+        )
+            ->join('produk_utama as pu', 'pu.id_produk', '=', 'produk.id_produk')
+            ->join('limit_order as lo', 'lo.id_produk', '=', 'pu.id_produk')
+            ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'produk.id_stok_produk')
+            ->where('lo.tanggal', now()->format('Y-m-d'))
+            ->limit(4)
+            ->get();
+
+        $listProduk = $produkUtama;
+
+        return response([
+            'message' => 'All Produk Retrieved',
+            'data' => $listProduk
+        ], 200);
+    }
+
+    public function showProdukByJenis(){
+
+        $produkHampers = Produk::select()
+            ->where('jenis_produk', 'Hampers')
+            ->get();
+
+        $listProdukHampers = [];
+        foreach ($produkHampers as $produk) {
+            $products = DB::table('detail_hampers as dh')
+                ->join('hampers as h', 'dh.id_hampers', '=', 'h.id_produk')
+                ->join('produk_utama as pu', 'pu.id_produk', '=', 'dh.id_produk')
+                ->join('limit_order as lo', 'lo.id_produk', '=', 'pu.id_produk')
+                ->join('produk as p', 'p.id_produk', '=', 'pu.id_produk')
+                ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'p.id_stok_produk')
+                ->select('p.*', 'rs.*','pu.*','lo.*')
+                ->where('h.id_produk', '=', $produk->id_produk)
+                ->get();
+            
+            $produk->produk = $products;
+            $produk->jumlah_sisa = DB::table('detail_hampers as dt')
+            ->join('hampers as h', 'h.id_produk', '=', 'dt.id_hampers')
+            ->join('produk_utama as pu', 'pu.id_produk', '=', 'dt.id_produk')
+            ->join('limit_order as lo', 'lo.id_produk', '=', 'pu.id_produk')
+            ->where('dt.id_hampers', $produk['id_produk'])
+            ->where('lo.tanggal', now()->format('Y-m-d')) //nanti inget ganti ke $tanggal
+            ->min('lo.jumlah_sisa');
+
+            $produk->jumlah_stok = DB::table('detail_hampers as dt')
+            ->join('hampers as h', 'h.id_produk', '=', 'dt.id_hampers')
+            ->join('produk_utama as pu', 'pu.id_produk', '=', 'dt.id_produk')
+            ->join('produk as p', 'p.id_produk', '=', 'pu.id_produk')
+            ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'p.id_stok_produk')
+            ->where('dt.id_hampers', $produk['id_produk'])
+            ->min('rs.jumlah_stok');
+
+            $listProdukHampers[] = $produk;
+        }
+        return response([
+            'message' => 'All Produk Retrieved',
+            'data' => $listProdukHampers
         ], 200);
     }
 
