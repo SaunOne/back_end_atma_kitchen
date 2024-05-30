@@ -170,3 +170,5 @@ Route::post('/transaksi-test/{id}', [App\Http\Controllers\api\TransaksiControlle
 
 Route::get('/produk', [App\Http\Controllers\api\ProdukController::class, 'showAll']);
 Route::get('/produk/{tanggal}', [App\Http\Controllers\api\ProdukController::class, 'showAllByTanggal']);
+Route::get('/produk-terlaris', [App\Http\Controllers\api\ProdukController::class, 'showProdukTerlaris']);
+Route::get('/produk-jenis', [App\Http\Controllers\api\ProdukController::class, 'showProdukByJenis']);
