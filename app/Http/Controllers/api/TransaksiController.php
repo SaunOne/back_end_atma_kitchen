@@ -1245,13 +1245,13 @@ class TransaksiController extends Controller
             return response(['message' => 'transaksi not found'], 404);
         }
 
-        $data['no_nota'] = $transaksi['no_nota'];
+        $data['no_nota'] = $transaksi['no_transaksi'];
         $data['tanggal_pesan'] = $transaksi['tanggal_pesan'];
         $data['tanggal_pelunasan'] = $transaksi['tanggal_pelunasan'];
         $data['tanggal_pengambilan'] = $transaksi['tanggal_pengambilan'];
         $data['email'] = $transaksi['email'];
         $data['nama_lengkap'] = $transaksi['nama_lengkap'];
-        $data['total_sebelum_ongkir'] = $transaksi['biaya_pengiriman'] + $transaksi['total_harga_transaksi'];
+        $data['total_sebelum_ongkir'] = $transaksi['total_harga_transaksi'] - $transaksi['biaya_pengiriman']  ;
         $data['ongkir'] = $transaksi['biaya_pengiriman'];
         $data['total_setelah_ongkir'] = $transaksi['total_harga_transaksi'];
         $data['point_terpakai'] = $transaksi['point_terpakai'];
