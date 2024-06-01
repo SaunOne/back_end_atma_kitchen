@@ -13,8 +13,8 @@ class Withdraw extends Model
 
     protected $fillable = [
         'id_user',
-        'jumlah_withdraw',
-        'status_withdraw',
+        'jumlah',
+        'status',
         'tanggal',
         'nama_bank',
         'no_rek',
