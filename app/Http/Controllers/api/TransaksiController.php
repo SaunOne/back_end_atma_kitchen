@@ -1538,11 +1538,10 @@ class TransaksiController extends Controller
             ->where('status_transaksi', 'menunggu pembayaran')
             ->update(['status_transaksi' => 'dibatalkan']);
 
-        
-
         if (!$transaksi) {
             return response(['message' => 'Transaksi not found'], 404);
         }
+
         foreach ($transaksi as $t) {
             $detail_transaksi = DetailTransaksi::select('detail_transaksi.*', 'p.*')
                 ->join('produk as p', 'p.id_produk', 'detail_transaksi.id_produk')
@@ -1612,6 +1611,8 @@ class TransaksiController extends Controller
             'data' => $transaksi
         ], 200);
     }
+
+   
 
     
 }

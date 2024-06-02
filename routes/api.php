@@ -179,7 +179,14 @@ Route::middleware(['auth:api', 'customer'])->group(function () {
      Route::get('/withdraw-user', [App\Http\Controllers\api\WalletController::class, 'showByUser']);
 
      //laporan
-     Route::get('/laporan-bulanan-keseluruhan/{id}', [App\Http\Controllers\api\LaporanController::class, 'laporanBulananKeseluruhan']);
+     Route::get('/laporan-bulanan-keseluruhan/{tahun}', [App\Http\Controllers\api\LaporanController::class, 'laporanBulananKeseluruhan']);
+     Route::get('/laporan-bulanan-produk/{tanggal}', [App\Http\Controllers\api\LaporanController::class, 'tampilLaporanPenjualanPerProduk']);
+     Route::post('/laporan-pemakaian-bahan', [App\Http\Controllers\api\LaporanController::class, 'laporanPemakaianBahanBaku']);
+     Route::get('/laporan-stok-bahan', [App\Http\Controllers\api\LaporanController::class, 'laporanStokBahanBaku']);
+     Route::get('/laporan-pengeluaran-pemasukkan/{tanggal}', [App\Http\Controllers\api\LaporanController::class, 'laporanPengeluaranPemasukkan']);
+     Route::get('/laporan-karyawan/{tanggal}', [App\Http\Controllers\api\LaporanController::class, 'laporanKaryawan']);
+     Route::get('/laporan-penitip/{tanggal}', [App\Http\Controllers\api\LaporanController::class, 'laporanPenitip']);
+     
 }); 
 
 Route::post('/transaksi-test/{id}', [App\Http\Controllers\api\TransaksiController::class, 'test']);
