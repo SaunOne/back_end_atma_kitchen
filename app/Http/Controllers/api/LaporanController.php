@@ -84,6 +84,7 @@ class LaporanController extends Controller
 
     public function tampilLaporanPenjualanPerProduk($tanggal)
     {
+        
         $carbonDate = Carbon::parse($tanggal);
 
         $data = DB::table('produk as P1')
@@ -111,8 +112,14 @@ class LaporanController extends Controller
         $laporan['bulan'] = $carbonDate->translatedFormat('F');
         $laporan['tahun'] = $carbonDate->translatedFormat('Y');
         $laporan['tanggal_cetak'] = Carbon::now()->format('y-F-d');
-        $laporan['data'] = $data;
+        $total = 0;
+        foreach($data as $d){
+            $total+=$d->jumlah_uang;
+        }
 
+        
+        $laporan['data'] = $data;
+        $laporan['data'][] = ["nama_produk" => "total","harga" => "","kuantitas" => "","total" => $total];
 
         return response([
             "data" => $laporan
@@ -145,7 +152,9 @@ class LaporanController extends Controller
         $laporan['periode'] = $data['start_date'] . ' - ' . $data['end_date'];
         $laporan['tanggal_cetak'] = Carbon::now()->format('y F d');
         $laporan['data'] = $isi;
-
+        $total = 0;
+        
+        
         return response([
             "data" => $laporan
         ]);
