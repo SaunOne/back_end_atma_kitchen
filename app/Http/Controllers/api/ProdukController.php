@@ -133,7 +133,7 @@ class ProdukController extends Controller
                 ->where('h.id_produk', '=', $produk->id_produk)
                 ->get();
             
-            $produk->produk = $products;
+            // $produk->produk = $products;
             $produk->jumlah_sisa = DB::table('detail_hampers as dt')
             ->join('hampers as h', 'h.id_produk', '=', 'dt.id_hampers')
             ->join('produk_utama as pu', 'pu.id_produk', '=', 'dt.id_produk')
@@ -176,7 +176,7 @@ class ProdukController extends Controller
             ->join('limit_order as lo', 'lo.id_produk', '=', 'pu.id_produk')
             ->join('ready_stok as rs', 'rs.id_stok_produk', '=', 'produk.id_stok_produk')
             ->where('lo.tanggal', now()->format('Y-m-d'))
-            ->limit(4)
+            ->limit(5)
             ->get();
 
         $listProduk = $produkUtama;
