@@ -155,7 +155,15 @@ Route::middleware(['auth:api', 'customer'])->group(function () {
      Route::post('/cek-stok', [App\Http\Controllers\api\TransaksiController::class, 'cekStok']);
      Route::get('/cek-bahan/{id}', [App\Http\Controllers\api\TransaksiController::class, 'showBahanKurang']);
      Route::get('/tampil-belanja-bahan',[App\Http\Controllers\api\TransaksiController::class, 'tampilBahanPerluDibeli']);
-     
+     Route::get('/transaksi-perlu-diproses',[App\Http\Controllers\api\TransaksiController::class, 'tampilPesananPerluDiproses']);
+     Route::get('/cek-bahan-diproses/{id}',[App\Http\Controllers\api\TransaksiController::class, 'cekStokBahanBaku']);
+     Route::get('/transaksi-telat-bayar',[App\Http\Controllers\api\TransaksiController::class, 'tampilTelatBayar']);
+     Route::post('/batalkan-transaksi',[App\Http\Controllers\api\TransaksiController::class, 'batalkanTelatBayar']);
+
+     //pemakaianBahanBaku
+     Route::get('/pemakaian-bahan/{tanggal}',[App\Http\Controllers\api\PemakaianBahanBakuController::class, 'tampilByTanggal']);
+     Route::get('/pemakaian-bahan',[App\Http\Controllers\api\PemakaianBahanBakuController::class, 'tampilAll']);
+
      //keranjang
      Route::get('/keranjang', [App\Http\Controllers\api\KeranjangController::class, 'showAll']);
      Route::get('/keranjang/{id}', [App\Http\Controllers\api\KeranjangController::class, 'showById']);
@@ -164,6 +172,21 @@ Route::middleware(['auth:api', 'customer'])->group(function () {
      Route::post('/keranjang-all', [App\Http\Controllers\api\KeranjangController::class, 'storeAll']);
      Route::put('/keranjang/{id}', [App\Http\Controllers\api\KeranjangController::class, 'update']);
      Route::delete('/keranjang/{id}', [App\Http\Controllers\api\KeranjangController::class, 'destroy']);
+
+     //wallet
+     Route::post('/konfirmasi-withdraw/{id}', [App\Http\Controllers\api\WalletController::class, 'konfirmasiWithdraw']);
+     Route::post('/withdraw-user', [App\Http\Controllers\api\WalletController::class, 'withdraw']);
+     Route::get('/withdraw-user', [App\Http\Controllers\api\WalletController::class, 'showByUser']);
+
+     //laporan
+     Route::get('/laporan-bulanan-keseluruhan/{tahun}', [App\Http\Controllers\api\LaporanController::class, 'laporanBulananKeseluruhan']);
+     Route::get('/laporan-bulanan-produk/{tanggal}', [App\Http\Controllers\api\LaporanController::class, 'tampilLaporanPenjualanPerProduk']);
+     Route::post('/laporan-pemakaian-bahan', [App\Http\Controllers\api\LaporanController::class, 'laporanPemakaianBahanBaku']);
+     Route::get('/laporan-stok-bahan', [App\Http\Controllers\api\LaporanController::class, 'laporanStokBahanBaku']);
+     Route::get('/laporan-pengeluaran-pemasukkan/{tanggal}', [App\Http\Controllers\api\LaporanController::class, 'laporanPengeluaranPemasukkan']);
+     Route::get('/laporan-karyawan/{tanggal}', [App\Http\Controllers\api\LaporanController::class, 'laporanKaryawan']);
+     Route::get('/laporan-penitip/{tanggal}', [App\Http\Controllers\api\LaporanController::class, 'laporanPenitip']);
+     
 }); 
 
 Route::post('/transaksi-test/{id}', [App\Http\Controllers\api\TransaksiController::class, 'test']);
