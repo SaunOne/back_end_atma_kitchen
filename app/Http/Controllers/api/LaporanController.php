@@ -119,7 +119,7 @@ class LaporanController extends Controller
 
         
         $laporan['data'] = $data;
-        $laporan['data'][] = ["nama_produk" => "total","harga" => "","kuantitas" => "","total" => $total];
+        $laporan['Total'] = $total;
 
         return response([
             "data" => $laporan
