@@ -1629,7 +1629,31 @@ class TransaksiController extends Controller
         ], 200);
     }
 
-   
 
+    public function showAllToProccess()
+{
+    $transaksis = Transaksi::select('transaksi.*', 'users.nama_lengkap')
+    ->join('users', 'users.id_user', 'transaksi.id_user')
+    ->where('status_transaksi', 'diterima')
+    ->whereBetween('tanggal_pengambilan', [date('Y-m-d'), date('Y-m-d', strtotime('+1 day'))])
+    ->get();
+
+
+
+    foreach ($transaksis as $transaksi) {
+        $detail_transaksis = DetailTransaksi::where('id_transaksi', $transaksi->id_transaksi)->get();
+        $transaksi->detail_transaksi = $detail_transaksis;
+        $transaksi->alamat = Alamat::where('id_alamat', $transaksi->id_alamat)->first();
+        foreach ($detail_transaksis as $detail_transaksi) {
+            $products = Produk::where('id_produk', $detail_transaksi->id_produk)->first();
+            $detail_transaksi->produk = $products;
+        }
+    }
+
+    return response([
+        'message' => 'All Transaksis Retrieved',
+        'data' => $transaksis
+    ], 200);
+}
     
 }

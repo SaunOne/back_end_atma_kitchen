@@ -56,7 +56,7 @@ class LaporanController extends Controller
             FROM 
                 transaksi t1
             WHERE 
-                YEAR(t1.tanggal_pesan) = 2024
+                YEAR(t1.tanggal_pesan) = $tahun
             AND 
                 STATUS_TRANSAKSI = 'selesai'
             GROUP BY 
