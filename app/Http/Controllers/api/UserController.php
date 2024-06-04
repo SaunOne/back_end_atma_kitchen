@@ -40,7 +40,7 @@ class UserController extends Controller
             return response(['message' => 'Users not found'], 404);
         }
 
-        $user->alamat = Alamat::select()->where('id_user', '=', 57)->get();
+        $user->alamat = Alamat::select()->where('id_user', '=', $id)->get();
 
         $user->pesanan = Transaksi::select()->where('id_user', '=', $user['id_user'])->get();
 
@@ -72,7 +72,7 @@ class UserController extends Controller
         }
 
         $validate = Validator::make($data, [
-            'email' => 'nullable|email:rfc,dns|unique:users,email',
+            'email' => 'nullable|email:rfc,dns',
         ]);
 
 

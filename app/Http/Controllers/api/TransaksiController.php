@@ -468,10 +468,9 @@ class TransaksiController extends Controller
             }
             if (!($listEror == [])) {
                 return response([
-                    "message" => "stok atau limit harian tidak memenuhi",
-                    "detail_transakasi" => $listEror,
+                    "message" => $listEror,
                     "status" => false,
-                ], 400);
+                ]);
             }
         } else if ($data['jenis_pesanan'] == "ready stock") {
             //kasus ready stok
@@ -594,15 +593,15 @@ class TransaksiController extends Controller
             }
             if (!($listEror == [])) {
                 return response([
-                    "message" => "stok atau limit harian tidak memenuhi",
-                    "detail_transakasi" => $listEror,
+                    "message" => $listEror,
                     "status" => false,
-                ], 400);
+                ]);
             }
         } else {
             return response([
-                "message" => "jenis pesanan tidak valid!!"
-            ], 400);
+                "message" => "jenis pesanan tidak valid!!",
+                "status" => false,
+            ]);
         }
 
         return response([
@@ -627,6 +626,13 @@ class TransaksiController extends Controller
             "point_terpakai" => "required",
             "jenis_pengiriman" => "required"
         ]);
+
+        $point = Point::where('id_user', $data['id_user'])->first();
+
+        if ($point) {
+            $point->jumlah_point -= $data['point_terpakai'];
+            $point->save();
+        }
 
 
         if ($validate->fails()) {
@@ -937,6 +943,8 @@ class TransaksiController extends Controller
             $point = Point::find($transaksi['id_user']);
             $point->jumlah_point += $transaksi['point_terpakai'];
             $point->save();
+
+            
 
             $detail_transaksi = DetailTransaksi::select('detail_transaksi.*', 'p.*')
                 ->join('produk as p', 'p.id_produk', 'detail_transaksi.id_produk')
@@ -1275,6 +1283,8 @@ class TransaksiController extends Controller
             }
 
             if (!($transaksi['status_transaksi'] == 'sudah dibayar')) {
+                
+                
 
                 return response([
                     "message" => "pembayaran is not valid",
@@ -1282,13 +1292,20 @@ class TransaksiController extends Controller
             }
 
             if ($data['jumlah_pembayaran'] < $transaksi['total_harga_transaksi']) {
-
+                
                 return response([
                     "message" => "Pembayaran Masih Kurang",
                     "total" => $transaksi['total_harga_transaksi'],
                     "uang_anda" =>   $data['jumlah_pembayaran']
                 ]);
             }
+
+            if($data['jumlah_pembayaran'] > $transaksi['total_harga_transaksi']){
+                $jumlah_sisa = $data['jumlah_pembayaran'] - $transaksi['total_harga_transaksi'];
+                $transaksi->tip = $jumlah_sisa;
+            }
+
+            
 
             $transaksi->status_transaksi = 'pembayaran valid';
             $transaksi->jumlah_pembayaran = $data["jumlah_pembayaran"];
@@ -1330,7 +1347,7 @@ class TransaksiController extends Controller
             $transaksi->save();
 
             return response([
-                "message" => "Radius Berhasil Di Input",
+                "message" => "Input biaya pengiriman berhasil",
                 "data" => $transaksi
             ], 200);
         }
@@ -1423,13 +1440,13 @@ class TransaksiController extends Controller
         $total_transaksi = $transaksi['total_harga_transaksi'] + ($transaksi['point_terpakai'] * 100);
 
 
-        $data['no_nota'] = $transaksi['no_nota'];
+        $data['no_nota'] = $transaksi['no_transaksi'];
         $data['tanggal_pesan'] = $transaksi['tanggal_pesan'];
         $data['tanggal_pelunasan'] = $transaksi['tanggal_pelunasan'];
         $data['tanggal_pengambilan'] = $transaksi['tanggal_pengambilan'];
         $data['email'] = $transaksi['email'];
         $data['nama_lengkap'] = $transaksi['nama_lengkap'];
-        $data['total_sebelum_ongkir'] =  $total_transaksi;
+        $data['total_sebelum_ongkir'] = $transaksi['total_harga_transaksi'] - $transaksi['biaya_pengiriman']  ;
         $data['ongkir'] = $transaksi['biaya_pengiriman'];
         $data['total_setelah_ongkir'] = $total_transaksi + $transaksi['biaya_pengiriman'];
         $data['point_terpakai'] = $transaksi['point_terpakai'];
