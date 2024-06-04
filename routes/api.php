@@ -179,6 +179,9 @@ Route::middleware(['auth:api', 'customer'])->group(function () {
      Route::post('/withdraw-user', [App\Http\Controllers\api\WalletController::class, 'withdraw']);
      Route::get('/withdraw-user', [App\Http\Controllers\api\WalletController::class, 'showByUser']);
 
+     Route::get('/withdraw', [App\Http\Controllers\api\WithdrawController::class, 'showAll']);
+     Route::get('/withdraw/{id}', [App\Http\Controllers\api\WithdrawController::class, 'showById']);
+
      //laporan
      Route::get('/laporan-bulanan-keseluruhan/{tahun}', [App\Http\Controllers\api\LaporanController::class, 'laporanBulananKeseluruhan']);
      Route::get('/laporan-bulanan-produk/{tanggal}', [App\Http\Controllers\api\LaporanController::class, 'tampilLaporanPenjualanPerProduk']);

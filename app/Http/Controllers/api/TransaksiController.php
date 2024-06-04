@@ -1252,7 +1252,7 @@ class TransaksiController extends Controller
         }
 
         if ($data['status'] == 'diambil') {
-            if ($transaksi['jenis_pengiriman'] == 'pick up') {
+            if ($transaksi['jenis_pengiriman'] == 'Pick Up') {
                 //balikin stoknya
                 $transaksi->status_transaksi = 'siap dipick-up';
             } else {
@@ -1265,7 +1265,7 @@ class TransaksiController extends Controller
             ]);
         } else if ($data['status'] == "sudah di-pickup") {
 
-            if ($transaksi['jenis_pengiriman'] == 'pick up') {
+            if ($transaksi['jenis_pengiriman'] == 'Pick Up') {
                 $transaksi->status_transaksi = 'selesai';
             } else {
                 $transaksi->status_transaksi = 'sudah dipick-up';

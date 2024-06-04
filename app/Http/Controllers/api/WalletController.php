@@ -143,6 +143,7 @@ class WalletController extends Controller
             $withdraw['status'] = 'success';
        } else if($data['status'] == 'ditolak'){
             $withdraw['status'] = 'ditolak';
+            $withdraw->save();
             return response(["message" => "Withdraw ditolak karna no rek atau bank tidak valid"]);
        }
        
