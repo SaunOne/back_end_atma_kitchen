@@ -366,6 +366,10 @@ class LaporanController extends Controller
                 ->get();
             $dLaporan['id_penitip'] = $p->id_penitip;
             $dLaporan['nama_penitip'] = $p->nama_penitip;
+            $dLaporan['total'] = 0;
+            foreach($data as $d){
+                $dLaporan['total']+=$d->total; 
+            }
             $dLaporan['data'] = $data;
             $isi[] = $dLaporan;
         }
