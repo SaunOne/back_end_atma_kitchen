@@ -316,12 +316,15 @@ class LaporanController extends Controller
             )
             ->get();
 
+        $laporan['total'] = 0;
         foreach ($data as $d) {
             if ($d->jumlah_bolos > 4) {
                 $d->total -= $d->bonus_gaji;
                 $d->bonus_gaji = 0;
             }
+            $laporan['total']+=$d->total;
         }
+        
         $carbonDate = Carbon::parse($tanggal);
         $laporan['alamat'] = "jl.Centralpark No. 10 Yogyakarta";
         $laporan['bulan'] = $carbonDate->translatedFormat('F');

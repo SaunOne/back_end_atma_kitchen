@@ -1418,9 +1418,6 @@ class TransaksiController extends Controller
                 ->first();
         }
 
-
-
-
         return response(["sdf" => $transaksi]);
         $total_transaksi = $transaksi['total_harga_transaksi'] + ($transaksi['point_terpakai'] * 100);
 
