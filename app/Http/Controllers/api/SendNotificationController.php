@@ -46,10 +46,10 @@ class SendNotificationController extends Controller
 
             $result = $apiInstance->createNotification($notification);
 
-            // return response([
-            //     "message" => "success send message",
-            //     $result
-            // ]);
+            return response([
+                "message" => "success send message",
+                $result
+            ]);
         
     }
 }

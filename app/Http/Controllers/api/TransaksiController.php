@@ -25,13 +25,12 @@ use Illuminate\Support\Facades\DB;
 use App\Models\PengeluaranLainLain;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use App\Http\Controllers;
 
 class TransaksiController extends Controller
 {
     public function showAll()
     {
-        $transaksis = Transaksi::select('transaksi.*', 'users.name_lengkap')
+        $transaksis = Transaksi::select('transaksi.*', 'users.nama_lengkap')
             ->join('users', 'users.id_user', 'transaksi.id_user')->get();
         foreach ($transaksis as $transaksi) {
             $detail_transaksis = DetailTransaksi::where('id_transaksi', $transaksi->id_transaksi)->get();
@@ -51,9 +50,9 @@ class TransaksiController extends Controller
 
     public function showByUser()
     {
-        $id_user =  Auth::user()->id_user;
-        
-        $transaksis = Transaksi::select('transaksi.*','users.nama_lengkap')
+        $id_user = Auth::user()->id_user;
+
+        $transaksis = Transaksi::select('transaksi.*', 'users.nama_lengkap')
             ->join('users', 'users.id_user', 'transaksi.id_user')
             ->where('transaksi.id_user', $id_user)->get();
 
@@ -66,7 +65,7 @@ class TransaksiController extends Controller
                 $detail_transaksi->produk = $products;
             }
         }
-        
+
         return response([
             'message' => 'All Transaksis Retrieved',
             'data' => $transaksis,
@@ -101,7 +100,8 @@ class TransaksiController extends Controller
 
         if ($validate->fails()) {
             return response(['message' => $validate->errors()->first()], 400);
-        };
+        }
+        ;
 
         $idProdukList = array_map(function ($detail) {
             return $detail['id_produk'];
@@ -139,7 +139,8 @@ class TransaksiController extends Controller
 
             if ($validate->fails()) {
                 return response(['message' => $validate->errors()->first()], 400);
-            };
+            }
+            ;
 
             //cek stok produk titipan
             $data = $request->all();
@@ -199,7 +200,7 @@ class TransaksiController extends Controller
                     foreach ($listBahan as $lb) {
 
                         if ($lb['id_bahan'] == $r->id_bahan) {
-                            $lb['stok_bahan'] -= ($r['jumlah_bahan']  * $dt['jumlah_produk']);
+                            $lb['stok_bahan'] -= ($r['jumlah_bahan'] * $dt['jumlah_produk']);
 
                             $temp = false;
                         }
@@ -282,7 +283,7 @@ class TransaksiController extends Controller
                     foreach ($listBahan as $lb) {
 
                         if ($lb['id_bahan'] == $r->id_bahan) {
-                            $lb['stok_bahan'] -= ($r['jumlah_bahan']  * $dt['jumlah_produk']);
+                            $lb['stok_bahan'] -= ($r['jumlah_bahan'] * $dt['jumlah_produk']);
 
                             $temp = false;
                         }
@@ -471,10 +472,9 @@ class TransaksiController extends Controller
             }
             if (!($listEror == [])) {
                 return response([
-                    "message" => "stok atau limit harian tidak memenuhi",
-                    "detail_transakasi" => $listEror,
+                    "message" => $listEror,
                     "status" => false,
-                ], 400);
+                ]);
             }
         } else if ($data['jenis_pesanan'] == "ready stock") {
             //kasus ready stok
@@ -597,15 +597,15 @@ class TransaksiController extends Controller
             }
             if (!($listEror == [])) {
                 return response([
-                    "message" => "stok atau limit harian tidak memenuhi",
-                    "detail_transakasi" => $listEror,
+                    "message" => $listEror,
                     "status" => false,
-                ], 400);
+                ]);
             }
         } else {
             return response([
-                "message" => "jenis pesanan tidak valid!!"
-            ], 400);
+                "message" => "jenis pesanan tidak valid!!",
+                "status" => false,
+            ]);
         }
 
         return response([
@@ -630,6 +630,13 @@ class TransaksiController extends Controller
             "point_terpakai" => "required",
             "jenis_pengiriman" => "required"
         ]);
+
+        $point = Point::where('id_user', $data['id_user'])->first();
+
+        if ($point) {
+            $point->jumlah_point -= $data['point_terpakai'];
+            $point->save();
+        }
 
 
         if ($validate->fails()) {
@@ -854,7 +861,7 @@ class TransaksiController extends Controller
                     foreach ($listBahan as $lb) {
 
                         if ($lb['id_bahan'] == $r->id_bahan) {
-                            $lb['stok_bahan'] -= ($r['jumlah_bahan']  * $dt['jumlah_produk']);
+                            $lb['stok_bahan'] -= ($r['jumlah_bahan'] * $dt['jumlah_produk']);
 
                             $temp = false;
                         }
@@ -903,7 +910,7 @@ class TransaksiController extends Controller
         foreach ($listBahan as $bahan) {
             if ($bahan['stok_bahan'] < 0) {
                 $bahanKurang[] = 'Stok bahan ' . $bahan['nama_bahan'] . ' masih kurang ' . ($bahan['stok_bahan'] * -1) . ' ' . $bahan['satuan'];
-                $bahan['kekurangan'] =  $bahan['stok_bahan'] * -1;
+                $bahan['kekurangan'] = $bahan['stok_bahan'] * -1;
                 $listBahanKurang[] = $bahan;
             }
         }
@@ -940,6 +947,8 @@ class TransaksiController extends Controller
             $point = Point::find($transaksi['id_user']);
             $point->jumlah_point += $transaksi['point_terpakai'];
             $point->save();
+
+
 
             $detail_transaksi = DetailTransaksi::select('detail_transaksi.*', 'p.*')
                 ->join('produk as p', 'p.id_produk', 'detail_transaksi.id_produk')
@@ -1047,7 +1056,7 @@ class TransaksiController extends Controller
                         foreach ($listBahan as $lb) {
 
                             if ($lb['id_bahan'] == $r->id_bahan) {
-                                $lb['stok_bahan'] -= ($r['jumlah_bahan']  * $dt['jumlah_produk']);
+                                $lb['stok_bahan'] -= ($r['jumlah_bahan'] * $dt['jumlah_produk']);
 
                                 $temp = false;
                             }
@@ -1098,7 +1107,7 @@ class TransaksiController extends Controller
             foreach ($listBahan as $bahan) {
                 if ($bahan['stok_bahan'] < 0) {
                     $bahanKurang[] = 'Stok bahan ' . $bahan['nama_bahan'] . ' masih kurang ' . ($bahan['stok_bahan'] * -1) . ' ' . $bahan['satuan'];
-                    $bahan['kekurangan'] =  $bahan['stok_bahan'] * -1;
+                    $bahan['kekurangan'] = $bahan['stok_bahan'] * -1;
                     $listBahanKurang[] = $bahan;
                 }
             }
@@ -1118,13 +1127,8 @@ class TransaksiController extends Controller
                 if ($transaksi['jumlah_pembayaran'] > $transaksi['total_harga_transaksi']) {
                     $transaksi['tip'] = $transaksi['jumlah_pembayaran'] - $transaksi['total_harga_transaksi'];
                 }
-
-                $notif = new SendNotificationController();  
-
                 $transaksi->status_transaksi = 'diproses';
                 $transaksi->save();
-
-                
 
                 return response([
                     "message" => "Berhasil Memproses Pesanan",
@@ -1171,7 +1175,7 @@ class TransaksiController extends Controller
                         foreach ($listBahan as $lb) {
 
                             if ($lb['id_bahan'] == $r->id_bahan) {
-                                $lb['stok_bahan'] -= ($r['jumlah_bahan']  * $dt['jumlah_produk']);
+                                $lb['stok_bahan'] -= ($r['jumlah_bahan'] * $dt['jumlah_produk']);
                                 $temp = false;
                             }
                         }
@@ -1218,7 +1222,7 @@ class TransaksiController extends Controller
         foreach ($listBahan as $bahan) {
             if ($bahan['stok_bahan'] < 0) {
                 $bahanKurang[] = 'Stok bahan ' . $bahan['nama_bahan'] . ' masih kurang ' . ($bahan['stok_bahan'] * -1) . ' ' . $bahan['satuan'];
-                $bahan['kekurangan'] =  $bahan['stok_bahan'] * -1;
+                $bahan['kekurangan'] = $bahan['stok_bahan'] * -1;
                 $listBahanKurang[] = $bahan;
             }
         }
@@ -1250,8 +1254,7 @@ class TransaksiController extends Controller
         }
 
         if ($data['status'] == 'diambil') {
-            if ($transaksi['jenis_pengiriman'] == 'pick up') {
-                //balikin stoknya
+            if ($transaksi['jenis_pengiriman'] == 'Pick Up' || $transaksi['jenis_pengiriman'] == 'Gosendf') {
                 $transaksi->status_transaksi = 'siap dipick-up';
             } else {
                 $transaksi->status_transaksi = 'dikirim kurir';
@@ -1263,7 +1266,7 @@ class TransaksiController extends Controller
             ]);
         } else if ($data['status'] == "sudah di-pickup") {
 
-            if ($transaksi['jenis_pengiriman'] == 'pick up') {
+            if ($transaksi['jenis_pengiriman'] == 'Pick Up') {
                 $transaksi->status_transaksi = 'selesai';
             } else {
                 $transaksi->status_transaksi = 'sudah dipick-up';
@@ -1284,6 +1287,8 @@ class TransaksiController extends Controller
 
             if (!($transaksi['status_transaksi'] == 'sudah dibayar')) {
 
+
+
                 return response([
                     "message" => "pembayaran is not valid",
                 ], 400);
@@ -1294,9 +1299,16 @@ class TransaksiController extends Controller
                 return response([
                     "message" => "Pembayaran Masih Kurang",
                     "total" => $transaksi['total_harga_transaksi'],
-                    "uang_anda" =>   $data['jumlah_pembayaran']
+                    "uang_anda" => $data['jumlah_pembayaran']
                 ]);
             }
+
+            if ($data['jumlah_pembayaran'] > $transaksi['total_harga_transaksi']) {
+                $jumlah_sisa = $data['jumlah_pembayaran'] - $transaksi['total_harga_transaksi'];
+                $transaksi->tip = $jumlah_sisa;
+            }
+
+
 
             $transaksi->status_transaksi = 'pembayaran valid';
             $transaksi->jumlah_pembayaran = $data["jumlah_pembayaran"];
@@ -1338,7 +1350,7 @@ class TransaksiController extends Controller
             $transaksi->save();
 
             return response([
-                "message" => "Transaksi Di Update Pembayaran Tidak Valid",
+                "message" => "Input biaya pengiriman berhasil",
                 "data" => $transaksi
             ], 200);
         }
@@ -1355,7 +1367,7 @@ class TransaksiController extends Controller
             return response(['message' => 'Absensi not found'], 404);
         }
 
-        if (!($transaksi['status_transaksi'] == 'sudah di-pickup')) {
+        if (!($transaksi['status_transaksi'] == 'sudah dipick-up') && !($transaksi['status_transaksi'] == 'dikirim kurir')) {
             return response([
                 "message" => "pesanan belum siap di pick-up"
             ], 400);
@@ -1424,17 +1436,20 @@ class TransaksiController extends Controller
                 ->first();
         }
 
+
+
+
         return response(["sdf" => $transaksi]);
         $total_transaksi = $transaksi['total_harga_transaksi'] + ($transaksi['point_terpakai'] * 100);
 
 
-        $data['no_nota'] = $transaksi['no_nota'];
+        $data['no_nota'] = $transaksi['no_transaksi'];
         $data['tanggal_pesan'] = $transaksi['tanggal_pesan'];
         $data['tanggal_pelunasan'] = $transaksi['tanggal_pelunasan'];
         $data['tanggal_pengambilan'] = $transaksi['tanggal_pengambilan'];
         $data['email'] = $transaksi['email'];
         $data['nama_lengkap'] = $transaksi['nama_lengkap'];
-        $data['total_sebelum_ongkir'] =  $total_transaksi;
+        $data['total_sebelum_ongkir'] = $transaksi['total_harga_transaksi'] - $transaksi['biaya_pengiriman'];
         $data['ongkir'] = $transaksi['biaya_pengiriman'];
         $data['total_setelah_ongkir'] = $total_transaksi + $transaksi['biaya_pengiriman'];
         $data['point_terpakai'] = $transaksi['point_terpakai'];
@@ -1576,10 +1591,14 @@ class TransaksiController extends Controller
                             ->get();
 
                         foreach ($hampers as $ph) {
+                            
+                            $date = Carbon::parse($t->tanggal_pengambilan);
+                            $formattedDate = $date->format('Y-m-d');
                             $limit_harian = LimitOrder::select()
                                 ->where('id_produk', $ph->id_produk)
-                                ->where('tanggal', $t->tanggal_pengambilan)
+                                ->where('tanggal','like','%' . $formattedDate .'%')
                                 ->first();
+                            // return response(["data" => $t->tanggal_pengambilan]);
                             $limit_harian->jumlah_sisa += $dt['jumlah_produk'];
                             $limit_harian->save();
                         }
@@ -1617,7 +1636,31 @@ class TransaksiController extends Controller
         ], 200);
     }
 
-   
 
-    
+    public function showAllToProccess()
+    {
+        $transaksis = Transaksi::select('transaksi.*', 'users.nama_lengkap')
+            ->join('users', 'users.id_user', 'transaksi.id_user')
+            ->where('status_transaksi', 'diterima')
+            ->whereBetween('tanggal_pengambilan', [date('Y-m-d'), date('Y-m-d', strtotime('+1 day'))])
+            ->get();
+
+
+
+        foreach ($transaksis as $transaksi) {
+            $detail_transaksis = DetailTransaksi::where('id_transaksi', $transaksi->id_transaksi)->get();
+            $transaksi->detail_transaksi = $detail_transaksis;
+            $transaksi->alamat = Alamat::where('id_alamat', $transaksi->id_alamat)->first();
+            foreach ($detail_transaksis as $detail_transaksi) {
+                $products = Produk::where('id_produk', $detail_transaksi->id_produk)->first();
+                $detail_transaksi->produk = $products;
+            }
+        }
+
+        return response([
+            'message' => 'All Transaksis Retrieved',
+            'data' => $transaksis
+        ], 200);
+    }
+
 }
