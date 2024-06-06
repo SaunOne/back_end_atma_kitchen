@@ -56,7 +56,7 @@ class LaporanController extends Controller
             FROM 
                 transaksi t1
             WHERE 
-                YEAR(t1.tanggal_pesan) = $tahun
+                YEAR(t1.tanggal_pesan) = 2024
             AND 
                 STATUS_TRANSAKSI = 'selesai'
             GROUP BY 
@@ -316,12 +316,15 @@ class LaporanController extends Controller
             )
             ->get();
 
+        $laporan['total'] = 0;
         foreach ($data as $d) {
             if ($d->jumlah_bolos > 4) {
                 $d->total -= $d->bonus_gaji;
                 $d->bonus_gaji = 0;
             }
+            $laporan['total']+=$d->total;
         }
+        
         $carbonDate = Carbon::parse($tanggal);
         $laporan['alamat'] = "jl.Centralpark No. 10 Yogyakarta";
         $laporan['bulan'] = $carbonDate->translatedFormat('F');
@@ -363,6 +366,10 @@ class LaporanController extends Controller
                 ->get();
             $dLaporan['id_penitip'] = $p->id_penitip;
             $dLaporan['nama_penitip'] = $p->nama_penitip;
+            $dLaporan['total'] = 0;
+            foreach($data as $d){
+                $dLaporan['total']+=$d->total; 
+            }
             $dLaporan['data'] = $data;
             $isi[] = $dLaporan;
         }
