@@ -35,6 +35,21 @@ class WalletController extends Controller
         ], 200);
     }
 
+    public function showWalletByUser()
+    {   
+        $id = Auth::user()->id_user;
+        $wallet = Wallet::find($id);
+
+        if (!$wallet) {
+            return response(['message' => 'Wallet not found'], 404);
+        }
+
+        return response([
+            'message' => 'Show Wallet Successfully',
+            'data' => $wallet
+        ], 200);
+    }
+
     public function store(Request $request)
     {
         $data = $request->all();

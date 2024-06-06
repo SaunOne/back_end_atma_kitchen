@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\PengeluaranLainLain;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Http\Controllers;
 
 class TransaksiController extends Controller
 {
@@ -1117,8 +1118,13 @@ class TransaksiController extends Controller
                 if ($transaksi['jumlah_pembayaran'] > $transaksi['total_harga_transaksi']) {
                     $transaksi['tip'] = $transaksi['jumlah_pembayaran'] - $transaksi['total_harga_transaksi'];
                 }
+
+                $notif = new SendNotificationController();  
+
                 $transaksi->status_transaksi = 'diproses';
                 $transaksi->save();
+
+                
 
                 return response([
                     "message" => "Berhasil Memproses Pesanan",

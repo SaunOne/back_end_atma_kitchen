@@ -174,7 +174,10 @@ Route::middleware(['auth:api', 'customer'])->group(function () {
      Route::put('/keranjang/{id}', [App\Http\Controllers\api\KeranjangController::class, 'update']);
      Route::delete('/keranjang/{id}', [App\Http\Controllers\api\KeranjangController::class, 'destroy']);
 
-     //wallet
+
+     Route::get('/wallet-user', [App\Http\Controllers\api\WalletController::class, 'showWalletByUser']);
+
+     //withdrwa
      Route::post('/konfirmasi-withdraw/{id}', [App\Http\Controllers\api\WalletController::class, 'konfirmasiWithdraw']);
      Route::post('/withdraw-user', [App\Http\Controllers\api\WalletController::class, 'withdraw']);
      Route::get('/withdraw-user', [App\Http\Controllers\api\WalletController::class, 'showByUser']);
@@ -198,4 +201,6 @@ Route::get('/produk', [App\Http\Controllers\api\ProdukController::class, 'showAl
 Route::get('/produk/{tanggal}', [App\Http\Controllers\api\ProdukController::class, 'showAllByTanggal']);
 Route::get('/produk-terlaris', [App\Http\Controllers\api\ProdukController::class, 'showProdukTerlaris']);
 Route::get('/produk-jenis', [App\Http\Controllers\api\ProdukController::class, 'showProdukByJenis']);
+
+Route::get('/sendNotification/{id_user}/{id_transaksi}', [App\Http\Controllers\api\SendNotificationController::class, 'sendNotifKonfirmasiProses']);
 
