@@ -1035,6 +1035,7 @@ class TransaksiController extends Controller
                 "data" => $transaksi
             ], 200);
         } else if ($data['status'] == 'diproses') {
+            
 
             $listBahan = [];
             $detailTransaksi = DetailTransaksi::select()
@@ -1657,5 +1658,57 @@ class TransaksiController extends Controller
         'data' => $transaksis
     ], 200);
 }
+
+public function bulkProses(Request $request)
+    {
+        $data = $request->all();
+        $date = $data['date'];
+        
+        $tempData = $data['data'];
+        
+        
+        $transaksi = Transaksi::select()
+            ->where('status_transaksi', 'diterima')
+            ->where('tanggal_pengambilan', $date . ' 00:00:00')
+            ->get();
+
+        foreach ($transaksi as $t) {
+            $t->status_transaksi = 'diproses';
+            $t->save();
+        }
+
+        $bahan = Bahan::all();
+        
+        // foreach ($bahan as $b) {
+        //     foreach ($tempData as $td) {  
+        //         if ($b->id_bahan == $td['id_bahan']) {
+        //             $b->stok_bahan -= $td['total_dibutuhkan'];
+        //             $b->save();
+        //         }
+        //     }   
+        // }
+        
+        
+        foreach ($tempData as $bahan) {
+                    $dataP['id_bahan'] = $bahan['id_bahan'];
+                    
+                    $dataP['jumlah'] = $bahan['total_dibutuhkan'];
+                    $dataP['id_transaksi'] = 243;
+                    $dataP['tanggal'] = now();
+                    
+                    $p  = PemakaianBahanBaku::create($dataP);
+                    
+                
+                }
+
+        
+
+        return response([
+            "message" => "Pesanan Telah Selesai",
+            "transaksi" => $transaksi,
+            "pemakaian_bahan" => $p,
+            "bahan" => $bahan
+        ]);
+    }
     
 }

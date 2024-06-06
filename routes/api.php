@@ -152,6 +152,7 @@ Route::middleware(['auth:api', 'customer'])->group(function () {
      Route::get('/cetak-nota/{id}',[App\http\Controllers\api\TransaksiController::class, 'cetakNota']);
      Route::post('/konfirmasi-admin/{id}',[App\http\Controllers\api\TransaksiController::class, 'konfirmasiAdmin']);
      Route::post('/konfirmasi-mo/{id}',[App\http\Controllers\api\TransaksiController::class, 'konfirmasiMO']);
+     Route::post('/bulk-proses',[App\http\Controllers\api\TransaksiController::class, 'bulkProses']);
      Route::post('/konfirmasi-customer/{id}',[App\http\Controllers\api\TransaksiController::class, 'konfirmasiCustomer']);
      Route::post('/cek-stok', [App\Http\Controllers\api\TransaksiController::class, 'cekStok']);
      Route::get('/cek-bahan/{id}', [App\Http\Controllers\api\TransaksiController::class, 'showBahanKurang']);
@@ -162,8 +163,8 @@ Route::middleware(['auth:api', 'customer'])->group(function () {
      Route::post('/batalkan-transaksi',[App\Http\Controllers\api\TransaksiController::class, 'batalkanTelatBayar']);
 
      //pemakaianBahanBaku
-     Route::get('/pemakaian-bahan/{tanggal}',[App\Http\Controllers\api\PemakaianBahanBakuController::class, 'tampilByTanggal']);
-     Route::get('/pemakaian-bahan',[App\Http\Controllers\api\PemakaianBahanBakuController::class, 'tampilAll']);
+     //Route::get('/pemakaian-bahan/{tanggal}',[App\Http\Controllers\api\PemakaianBahanBakuController::class, 'tampilByTanggal']);
+     Route::get('/pemakaian-bahan/{date}',[App\Http\Controllers\api\PemakaianBahanBakuController::class, 'showAll']);
 
      //keranjang
      Route::get('/keranjang', [App\Http\Controllers\api\KeranjangController::class, 'showAll']);
