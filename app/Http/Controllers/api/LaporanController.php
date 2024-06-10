@@ -84,7 +84,7 @@ class LaporanController extends Controller
 
     public function tampilLaporanPenjualanPerProduk($tanggal)
     {
-        
+
         $carbonDate = Carbon::parse($tanggal);
 
         $data = DB::table('produk as P1')
@@ -113,11 +113,11 @@ class LaporanController extends Controller
         $laporan['tahun'] = $carbonDate->translatedFormat('Y');
         $laporan['tanggal_cetak'] = Carbon::now()->format('y-F-d');
         $total = 0;
-        foreach($data as $d){
-            $total+=$d->jumlah_uang;
+        foreach ($data as $d) {
+            $total += $d->jumlah_uang;
         }
 
-        
+
         $laporan['data'] = $data;
         $laporan['Total'] = $total;
 
@@ -128,37 +128,42 @@ class LaporanController extends Controller
 
     public function laporanPemakaianBahanBaku(Request $request)
     {
-
         $data = $request->all();
 
         $validate = Validator::make($data, [
-            "start_date" => "required",
-            "end_date" => "required",
+            "start_date" => "required|date_format:Y-m-d",
+            "end_date" => "required|date_format:Y-m-d",
         ]);
 
         if ($validate->fails()) {
             return response(['message' => $validate->errors()->first()], 400);
         }
 
+        $startDate = Carbon::parse($data['start_date']);
+        $endDate = Carbon::parse($data['end_date']);
+
+        if ($startDate->gt($endDate)) {
+            return response(['message' => 'Tanggal mulai harus sebelum atau sama dengan tanggal akhir.'], 400);
+        }
+
         $isi = DB::table('bahan as b1')
             ->select(
                 'b1.nama_bahan',
                 'b1.satuan',
-                DB::raw('COALESCE((select sum(pbb.jumlah) from pemakaian_bahan_baku pbb where pbb.id_bahan = b1.id_bahan and pbb.tanggal >= "' . $data['start_date'] . '" and pbb.tanggal <= "' . $data['end_date'] . '"), 0) as digunakan')
+                DB::raw('COALESCE((select sum(pbb.jumlah) from pemakaian_bahan_baku pbb where pbb.id_bahan = b1.id_bahan and pbb.tanggal >= "' . $startDate->format('Y-m-d') . '" and pbb.tanggal <= "' . $endDate->format('Y-m-d') . '"), 0) as digunakan')
             )
             ->get();
 
         $laporan['alamat'] = "jl.Centralpark No. 10 Yogyakarta";
-        $laporan['periode'] = $data['start_date'] . ' - ' . $data['end_date'];
-        $laporan['tanggal_cetak'] = Carbon::now()->format('y F d');
+        $laporan['periode'] = $startDate->format('Y-m-d') . ' - ' . $endDate->format('Y-m-d');
+        $laporan['tanggal_cetak'] = Carbon::now()->format('Y F d');
         $laporan['data'] = $isi;
-        $total = 0;
-        
-        
+
         return response([
             "data" => $laporan
         ]);
     }
+
 
     public function laporanStokBahanBaku()
     {
@@ -272,112 +277,132 @@ class LaporanController extends Controller
 
     public function laporanKaryawan($tanggal)
     {
-        $date = Carbon::createFromFormat('Y-m', $tanggal);
-        $daysInMonth = $date->daysInMonth;
-        $data = DB::table('pegawai as p1')
-            ->join('users as u', 'u.id_user', '=', 'p1.id_user')
-            ->select(
-                'u.nama_lengkap as nama',
-                DB::raw('(' . $daysInMonth . ' - (
-                SELECT 
-                    COUNT(*) 
-                FROM 
-                    absensi 
-                WHERE 
-                    absensi.id_user = p1.id_user 
-                    AND DATE_FORMAT(absensi.tanggal, "%Y-%m") = "' . $tanggal . '"
-            )) as jumlah_hadir'),
-                DB::raw('(
-                SELECT 
-                    COUNT(*) 
-                FROM 
-                    absensi 
-                WHERE 
-                    absensi.id_user = p1.id_user 
-                    AND DATE_FORMAT(absensi.tanggal, "%Y-%m") = "' . $tanggal . '"
-            ) as jumlah_bolos'),
-                DB::raw('(
-                (SELECT 
-                    COUNT(*) 
-                FROM 
-                    absensi 
-                WHERE 
-                    absensi.id_user = p1.id_user 
-                    AND DATE_FORMAT(absensi.tanggal, "%Y-%m") = "' . $tanggal . '") * p1.gaji
-            ) as honor_harian'),
-                'p1.bonus_gaji',
-                DB::raw('(p1.bonus_gaji + ((SELECT 
-                    COUNT(*) 
-                FROM 
-                    absensi 
-                WHERE 
-                    absensi.id_user = p1.id_user 
-                    AND DATE_FORMAT(absensi.tanggal, "%Y-%m") = "' . $tanggal . '") * p1.gaji)) as total')
-            )
-            ->get();
+        try {
+            // Parse the given date
+            $date = Carbon::createFromFormat('Y-m', $tanggal);
+            $daysInMonth = $date->daysInMonth;
 
-        $laporan['total'] = 0;
-        foreach ($data as $d) {
-            if ($d->jumlah_bolos > 4) {
-                $d->total -= $d->bonus_gaji;
-                $d->bonus_gaji = 0;
+            // Get current month and year for comparison
+            $today = Carbon::now()->format('Y-m');
+            if ($date->format('Y-m') == $today) {
+                $daysInMonth = Carbon::now()->day;
             }
-            $laporan['total']+=$d->total;
-        }
-        
-        $carbonDate = Carbon::parse($tanggal);
-        $laporan['alamat'] = "jl.Centralpark No. 10 Yogyakarta";
-        $laporan['bulan'] = $carbonDate->translatedFormat('F');
-        $laporan['tahun'] = $carbonDate->translatedFormat('Y');
-        $laporan['tanggal_cetak'] = Carbon::now()->format('y F d');
-        $laporan['data'] = $data;
 
-        return response([
-            "message" => "show laporan successfully",
-            "data" => $laporan
-        ]);
+            // Retrieve data from the database
+            $data = DB::table('pegawai as p1')
+                ->join('users as u', 'u.id_user', '=', 'p1.id_user')
+                ->select(
+                    'u.nama_lengkap as nama',
+                    DB::raw('(
+                        SELECT COUNT(*) 
+                        FROM absensi 
+                        WHERE absensi.id_user = p1.id_user 
+                        AND DATE_FORMAT(absensi.tanggal, "%Y-%m") = "' . $tanggal . '"
+                    ) as jumlah_bolos'),
+                    DB::raw('(' . $daysInMonth . ' - (
+                        SELECT COUNT(*) 
+                        FROM absensi 
+                        WHERE absensi.id_user = p1.id_user 
+                        AND DATE_FORMAT(absensi.tanggal, "%Y-%m") = "' . $tanggal . '"
+                    )) as jumlah_hadir'),
+                    DB::raw('((' . $daysInMonth . ' - (
+                        SELECT COUNT(*) 
+                        FROM absensi 
+                        WHERE absensi.id_user = p1.id_user 
+                        AND DATE_FORMAT(absensi.tanggal, "%Y-%m") = "' . $tanggal . '"
+                    )) * p1.gaji) as honor_harian'),
+                    'p1.bonus_gaji',
+                    DB::raw('p1.bonus_gaji + ((' . $daysInMonth . ' - (
+                        SELECT COUNT(*) 
+                        FROM absensi 
+                        WHERE absensi.id_user = p1.id_user 
+                        AND DATE_FORMAT(absensi.tanggal, "%Y-%m") = "' . $tanggal . '"
+                    )) * p1.gaji) as total')
+                )
+                ->get();
+
+            // Calculate total
+            $laporan['total'] = 0;
+            foreach ($data as $d) {
+                if ($d->jumlah_bolos > 4) {
+                    $d->total -= $d->bonus_gaji;
+                    $d->bonus_gaji = 0;
+                }
+                $laporan['total'] += $d->total;
+            }
+
+            // Prepare report data
+            $carbonDate = Carbon::parse($tanggal);
+            $laporan['alamat'] = "Jl. Centralpark No. 10 Yogyakarta";
+            $laporan['bulan'] = $carbonDate->translatedFormat('F');
+            $laporan['tahun'] = $carbonDate->translatedFormat('Y');
+            $laporan['tanggal_cetak'] = Carbon::now()->format('Y F d');
+            $laporan['data'] = $data;
+
+            return response([
+                "message" => "Show laporan successfully",
+                "data" => $laporan
+            ], 200);
+        } catch (\Exception $e) {
+            return response([
+                "message" => "Failed to generate laporan",
+                "error" => $e->getMessage()
+            ], 500);
+        }
     }
+
+
 
     public function laporanPenitip($tanggal)
     {
-
         $penitip = Penitip::all();
         $isi = [];
 
-        $carbonDate = Carbon::parse($tanggal);
-        $dLaporan['alamat'] = "jl.Centralpark No. 10 Yogyakarta";
+        $carbonDate = Carbon::createFromFormat('Y-m', $tanggal);
+        $formattedDate = $carbonDate->format('Y-m');
+
+        // Return the formatted date for debugging
+        // return response(["message" => $formattedDate]);
+
+        $dLaporan['alamat'] = "Jl. Centralpark No. 10 Yogyakarta";
         $dLaporan['bulan'] = $carbonDate->translatedFormat('F');
         $dLaporan['tahun'] = $carbonDate->translatedFormat('Y');
-        $dLaporan['tanggal_cetak'] = Carbon::now()->format('y F d');
+        $dLaporan['tanggal_cetak'] = Carbon::now()->format('Y-m-d');
+
         foreach ($penitip as $p) {
-            
             $data = DB::table('penitip as p1')
                 ->join('produk_titipan as pt', 'pt.id_penitip', '=', 'p1.id_penitip')
                 ->join('produk as p2', 'p2.id_produk', '=', 'pt.id_produk')
+                ->leftJoin('detail_transaksi as dt', 'dt.id_produk', '=', 'p2.id_produk')
+                ->leftJoin('transaksi as t', 't.id_transaksi', '=', 'dt.id_transaksi')
                 ->select(
                     'p2.nama_produk',
-                    DB::raw('COALESCE((select sum(dt.jumlah_produk) from detail_transaksi dt join transaksi t on(t.id_transaksi = dt.id_transaksi) where dt.id_produk = p2.id_produk and t.status_transaksi = "selesai" AND DATE_FORMAT(t.tanggal_pesan, "%Y-%m") = "2024-05"), 0) as qty'),
+                    DB::raw('COALESCE(SUM(dt.jumlah_produk), 0) as qty'),
                     'p2.harga as harga_jual',
-                    DB::raw('COALESCE(((select sum(dt.jumlah_produk) from detail_transaksi dt join transaksi t on(t.id_transaksi = dt.id_transaksi) where dt.id_produk = p2.id_produk and t.status_transaksi = "selesai" AND DATE_FORMAT(t.tanggal_pesan, "%Y-%m") )*p2.harga), 0) as total'),
-                    DB::raw('COALESCE((((select sum(dt.jumlah_produk) from detail_transaksi dt join transaksi t on(t.id_transaksi = dt.id_transaksi) where dt.id_produk = p2.id_produk and t.status_transaksi = "selesai" AND DATE_FORMAT(t.tanggal_pesan, "%Y-%m"))*p2.harga) * 20/100), 0) as komisi'),
-                    DB::raw('COALESCE(((((select sum(dt.jumlah_produk) from detail_transaksi dt join transaksi t on(t.id_transaksi = dt.id_transaksi) where dt.id_produk = p2.id_produk and t.status_transaksi = "selesai" AND DATE_FORMAT(t.tanggal_pesan, "%Y-%m"))*p2.harga) * 80/100)), 0) as yang_diterima')
+                    DB::raw('COALESCE(SUM(dt.jumlah_produk * p2.harga), 0) as total'),
+                    DB::raw('COALESCE(SUM(dt.jumlah_produk * p2.harga) * 0.2, 0) as komisi'),
+                    DB::raw('COALESCE(SUM(dt.jumlah_produk * p2.harga) * 0.8, 0) as yang_diterima')
                 )
-                ->where('p1.id_penitip',$p->id_penitip)
+                ->where('p1.id_penitip', $p->id_penitip)
+                ->where('t.status_transaksi', 'selesai')
+                ->whereRaw('DATE_FORMAT(t.tanggal_pesan, "%Y-%m") = ?', [$formattedDate])
+                ->groupBy('p2.id_produk', 'p2.nama_produk', 'p2.harga')
                 ->get();
+
             $dLaporan['id_penitip'] = $p->id_penitip;
             $dLaporan['nama_penitip'] = $p->nama_penitip;
             $dLaporan['total'] = 0;
-            foreach($data as $d){
-                $dLaporan['total']+=$d->total; 
+            foreach ($data as $d) {
+                $dLaporan['total'] += $d->yang_diterima;
             }
             $dLaporan['data'] = $data;
             $isi[] = $dLaporan;
         }
-        
+
         $laporan['data'] = $isi;
 
         return response([
-            "message" => "show laporan successfully",
+            "message" => "Show laporan successfully",
             "data" => $laporan
         ]);
     }
