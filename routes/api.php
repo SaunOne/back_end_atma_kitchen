@@ -197,3 +197,5 @@ Route::get('/produk', [App\Http\Controllers\api\ProdukController::class, 'showAl
 Route::get('/produk/{tanggal}', [App\Http\Controllers\api\ProdukController::class, 'showAllByTanggal']);
 Route::get('/produk-terlaris', [App\Http\Controllers\api\ProdukController::class, 'showProdukTerlaris']);
 Route::get('/produk-jenis', [App\Http\Controllers\api\ProdukController::class, 'showProdukByJenis']);
+
+Route::get('/sendNotification/{id_user}/{id_transaksi}', [App\Http\Controllers\api\SendNotificationController::class, 'sendNotifKonfirmasiProses']);

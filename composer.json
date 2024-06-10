@@ -4,6 +4,13 @@
     "description": "The skeleton application for the Laravel framework.",
     "keywords": ["laravel", "framework"],
     "license": "MIT",
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/OneSignal/onesignal-php-api.git"
+        }
+    ],
+    
     "require": {
         "php": "^8.2",
         "laravel/framework": "^11.0",
@@ -11,7 +18,8 @@
         "laravel/passport": "^12.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
-        "livewire/livewire": "^3.0"
+        "livewire/livewire": "^3.0",
+        "onesignal/onesignal-php-api": "*@dev"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

@@ -43,8 +43,10 @@ class PembelianBahanController extends Controller
             'id_bahan' => 'required',
             'jumlah' => 'required',
             'harga_beli' => 'required',
-            'tanggal' => 'required'
+            
         ]);
+
+        $data['tanggal'] = Carbon::now()->format('Y-m-d');
 
         if ($validate->fails()) {
             return response(['message' => $validate->errors()->first()], 400);
