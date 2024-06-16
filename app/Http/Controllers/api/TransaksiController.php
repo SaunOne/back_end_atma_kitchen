@@ -1427,6 +1427,7 @@ class TransaksiController extends Controller
                 ->join('alamat as a', 'a.id_alamat', 'transaksi.id_alamat')
                 ->where('transaksi.id_transaksi', $id)
                 ->first();
+                
             // $data['alamat'] = $transaksi['alamat']['detail_alamat'] . ', ' . $transaksi['alamat']['kelurahan'] . ', ' . $transaksi['alamat']['kecamatan'] . ', ' . $transaksi['alamat']['kabupaten'] . ', ' . $transaksi['alamat']['provinsi'];
         } else {
             $transaksi = Transaksi::select('transaksi.*', 'u.*', 'p.*')
@@ -1437,9 +1438,9 @@ class TransaksiController extends Controller
         }
 
 
-
-
         return response(["sdf" => $transaksi]);
+
+        
         $total_transaksi = $transaksi['total_harga_transaksi'] + ($transaksi['point_terpakai'] * 100);
 
 
