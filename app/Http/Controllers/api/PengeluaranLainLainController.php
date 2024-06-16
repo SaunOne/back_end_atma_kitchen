@@ -41,6 +41,7 @@ class PengeluaranLainLainController extends Controller
             'nama_pengeluaran' => 'required',
             'jumlah_pengeluaran' => 'required'
         ]);
+        $data['tanggal'] = Carbon::now()->format('Y-m-d');
 
         $data['tanggal'] = Carbon::now()->format('Y-m-d');
 

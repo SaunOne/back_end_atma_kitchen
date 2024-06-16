@@ -114,6 +114,8 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $loginData = $request->all();
+        
+       
 
         $validate = Validator::make($loginData, [
             'email' => '',
