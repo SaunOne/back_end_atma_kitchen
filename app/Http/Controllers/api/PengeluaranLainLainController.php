@@ -39,9 +39,9 @@ class PengeluaranLainLainController extends Controller
 
         $validate = Validator::make($data, [
             'nama_pengeluaran' => 'required',
-            'tanggal' => 'required',
             'jumlah_pengeluaran' => 'required'
         ]);
+        $data['tanggal'] = Carbon::now()->format('Y-m-d');
 
         if ($validate->fails()) {
             return response(['message' => $validate->errors()->first()], 400);
