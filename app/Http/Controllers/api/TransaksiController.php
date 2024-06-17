@@ -31,7 +31,9 @@ class TransaksiController extends Controller
     public function showAll()
     {
         $transaksis = Transaksi::select('transaksi.*', 'users.nama_lengkap')
-            ->join('users', 'users.id_user', 'transaksi.id_user')->get();
+            ->join('users', 'users.id_user', 'transaksi.id_user')
+            ->orderBy('transaksi.id_transaksi', 'desc')
+            ->get();
         foreach ($transaksis as $transaksi) {
             $detail_transaksis = DetailTransaksi::where('id_transaksi', $transaksi->id_transaksi)->get();
             $transaksi->detail_transaksi = $detail_transaksis;
@@ -54,6 +56,7 @@ class TransaksiController extends Controller
 
         $transaksis = Transaksi::select('transaksi.*', 'users.nama_lengkap')
             ->join('users', 'users.id_user', 'transaksi.id_user')
+            ->orderBy('transaksi.id_transaksi', 'desc')
             ->where('transaksi.id_user', $id_user)->get();
 
         foreach ($transaksis as $transaksi) {
@@ -1414,6 +1417,8 @@ class TransaksiController extends Controller
             ->where('id_transaksi', $id)
             ->first();
 
+            
+        
 
 
         if (!$transaksi) {
@@ -1422,13 +1427,14 @@ class TransaksiController extends Controller
 
 
         if ($transaksi['jenis_pengiriman'] == "Atma Kitchen Delivery") {
-            $transaksi = Transaksi::select('transaksi.*', 'u.email', 'u.nama_lengkap', 'p.*', 'a.*')
+
+            $transaksi = Transaksi::select('transaksi.*', 'u.email', 'u.nama_lengkap', 'p.*')
                 ->join('users as u', 'u.id_user', 'transaksi.id_user')
                 ->join('point as p', 'p.id_user', 'u.id_user')
                 ->join('alamat as a', 'a.id_alamat', 'transaksi.id_alamat')
                 ->where('transaksi.id_transaksi', $id)
                 ->first();
-                
+            
             // $data['alamat'] = $transaksi['alamat']['detail_alamat'] . ', ' . $transaksi['alamat']['kelurahan'] . ', ' . $transaksi['alamat']['kecamatan'] . ', ' . $transaksi['alamat']['kabupaten'] . ', ' . $transaksi['alamat']['provinsi'];
         } else {
             $transaksi = Transaksi::select('transaksi.*', 'u.*', 'p.*')
@@ -1439,7 +1445,7 @@ class TransaksiController extends Controller
         }
 
 
-        return response(["sdf" => $transaksi]);
+        
 
         
         $total_transaksi = $transaksi['total_harga_transaksi'] + ($transaksi['point_terpakai'] * 100);
