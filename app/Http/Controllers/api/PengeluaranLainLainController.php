@@ -6,12 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\PengeluaranLainLain;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
 
 class PengeluaranLainLainController extends Controller
 {
     public function showAll()
     {
-        $pengeluarans = PengeluaranLainLain::all();
+        $pengeluarans = PengeluaranLainLain::select('pengeluaran_lain_lain.*')
+        ->orderBy('pengeluaran_lain_lain.tanggal', 'desc')
+        ->get();
 
         return response([
             'message' => 'All Pengeluaran Lain-lain Retrieved',

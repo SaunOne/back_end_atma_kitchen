@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PembelianBahan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
 
 class PembelianBahanController extends Controller
 {
@@ -13,6 +14,7 @@ class PembelianBahanController extends Controller
     {
         $pembelianBahans = PembelianBahan::select('pembelian_bahan.*', 'bahan.*')
         ->join('bahan', 'pembelian_bahan.id_bahan', '=', 'bahan.id_bahan')
+        ->orderBy('pembelian_bahan.tanggal', 'desc')
         ->get();
 
         return response([
